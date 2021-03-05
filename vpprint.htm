@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto" type="text/css"/>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.7/angular.min.js"></script>
+<link href="vp.png" rel="icon">
+<style>
+body {
+	font-family: Arial;
+	height: 100vh;
+	margin: 0;
+	min-width: 600px;
+	min-height: 400px;
+}
+.today .vpnum {
+	font-weight: normal !important;
+	color: #000000 !important;
+	background-color: transparent !important;
+}
+</style>
+<title>Print</title>
+</head>
+<body ng-app="vpPrintApp" ng-cloak>
+<vp-print-grid/>
+<script type='text/javascript'>
+angular.module('vpPrintApp', [])
+	.directive("vpPrintGrid", function($window) {
+		return {
+			controller: function($scope) {
+				$scope.vpgrid = $window.opener.vpprintgrid;
+			},
+			templateUrl: "vpgrid.htm",
+			restrict: 'E'
+		};
+	})
+;
+</script>
+</body>
+</html>

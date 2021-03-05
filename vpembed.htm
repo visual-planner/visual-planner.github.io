@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.7/angular.min.js"></script>  <!-- angular library -->
+<style>
+#visualplanner {
+	font-family: Arial;
+	height: 60vh;
+	width: 60vw;
+}
+</style>
+</head>
+<body ng-app="vpApp" ng-controller="vpController" ng-cloak>  <!-- connect angular module and controller -->
+<h1>visual-planner embedded</h1>
+<div id="visualplanner"><vp-grid/></div>  <!-- visual-planner element -->
+<script src="vplib.js" type='text/javascript'></script>  <!-- vp library -->
+
+<script type='text/javascript'>
+angular.module("vpApp").controller("vpController", function(vpSettings, $scope) {
+	// implement the controller
+	var cfg = vpSettings.getConfig();
+	console.log("visual-planner embed: Modify this settings object if required:");
+	console.log(cfg);
+	cfg.month_count = 4;  // modify default settings if required
+	//cfg.scroll_buffer = 0;
+	$scope.vpembed = true;
+});
+</script>
+
+</body>
+</html>
+

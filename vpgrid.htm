@@ -1,0 +1,326 @@
+<style>
+#vpbox {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+#vpgridbox {
+	flex-grow: 1;
+	overflow: auto;
+	border: none;
+	outline: none;
+}
+.hidescroll {
+	scrollbar-width: none;
+}
+.hidescroll::-webkit-scrollbar {
+	display: none;
+}
+#vpgrid {
+	font-size: calc(1.1vh * {{vpgrid.fontscale}});
+	display: grid;
+	grid-template-areas: {{vpgrid.gridareas}};
+	grid-gap: 1px;
+	position: relative;
+	user-select: none;
+}
+.vpmonth {
+	display: contents;
+}
+.vpmonth.past {
+	opacity: {{vpgrid.past_opacity}};
+}
+.vphdr {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: bold;
+	overflow: hidden;
+	white-space: nowrap;
+	min-width: 10em;
+	opacity: inherit;
+}
+.vpday {
+	display: flex;
+	background-color: #eaeaea;
+	opacity: inherit;
+}
+.vpday.weekend {
+	background-color: #d8d8d8;
+}
+.vpnum {
+	font-size: 0.8em;
+	flex-shrink: 0;
+	z-index: 2;
+}
+.today .vpnum {
+	font-weight: bold;
+	color: white;
+	background-color: red;
+}
+.vpdaylabels {
+	overflow: hidden;
+}
+.vplabel {
+	width: fit-content;
+	width: -moz-fit-content;
+	max-width: 100%;
+	min-height: 1em;
+	min-width: 1em;
+	box-sizing: border-box;
+	border-radius: 0.25em;
+	padding: 0.1em 0.2em;
+	margin: 1px;
+	opacity: inherit;
+	pointer-events: all;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	z-index: 2;
+}
+.vpmultilabelbox {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	opacity: inherit;
+	pointer-events: none;
+}
+.vplabel.multiday {
+	position: absolute;
+	display: flex;
+	align-items: center;
+	min-height: 0.25em;
+	min-width: 0.25em;
+	margin: 0;
+	border-radius: 0;
+	white-space: nowrap;
+	pointer-events: all;
+	opacity: initial;
+	z-index: 1;
+}
+.vplink {
+	pointer-events: all;
+	cursor: pointer;
+}
+#vpnavbar {
+	background-color: gainsboro;
+	opacity: 0.5;
+	font-size: 0.6em;
+	font-weight: bold;
+	padding: 0.3em;
+	display: flex;
+	justify-content: space-around;
+	user-select: none;
+	-ms-user-select: none;
+	-webkit-user-select: none;
+}
+#vpcalbar {
+	min-height: 3em;
+	background-color: gainsboro;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	overflow: hidden;
+	font-size: 0.65em;
+	user-select: none;
+	-ms-user-select: none;
+	-webkit-user-select: none;
+}
+.vpcalbtn {
+	padding: 0.5em;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+.vpcalbtn:hover {
+	background-color: rgba(0,0,0,0.1);
+}
+.vpcalbtn:active {
+	background-color: rgba(0,0,0,0.3);
+}
+.vpcalbtn.checked {
+	opacity: 0.5;
+}
+.vpcalmarker {
+	margin-right: 0.3em;
+	padding: 0em 0.5em;
+	border-radius: 0.25em;
+}
+</style>
+
+<span ng-if="vpgrid.view.column">
+	<style>
+	#vpgrid {
+		width: {{vpgrid.scroll_size}}%;
+		grid-auto-flow: column;
+		grid-template-rows: 3em repeat(37, 1fr) 1em;
+	}
+	@media only screen and (orientation: portrait) {
+		#vpgrid {
+			width: {{vpgrid.scroll_size_portrait}}%;
+		}
+	}
+	.vphdr {
+		grid-row: 1;
+	}
+	.vpftr {
+		grid-row: 39;
+	}
+	.vpday {
+		align-items: center;
+		padding: 1px;
+	}
+	.vpday.offset0 {grid-row-start: 2;}
+	.vpday.offset1 {grid-row-start: 3;}
+	.vpday.offset2 {grid-row-start: 4;}
+	.vpday.offset3 {grid-row-start: 5;}
+	.vpday.offset4 {grid-row-start: 6;}
+	.vpday.offset5 {grid-row-start: 7;}
+	.vpday.offset6 {grid-row-start: 8;}
+	.vpnum {
+		width: 1.5em;
+		text-align: center;
+		padding: 0.25em;
+		margin: 0.1em 0.1em 0.1em 0.2em;
+	}
+	.vplabel.multiday {
+		width: calc(1.1em * {{vpgrid.multidayscale}});
+		height: 100%;
+		padding: 0.5em 0;
+		writing-mode: vertical-rl;
+	}
+	.vplabel.multiday.borderfirst {
+		border-top-left-radius: 1em;
+		border-top-right-radius: 1em;
+	}
+	.vplabel.multiday.borderlast {
+		border-bottom-right-radius: 1em;
+		border-bottom-left-radius: 1em;
+	}
+	</style>
+
+	<span ng-if="vpgrid.view.collapse">
+		<style>
+		#vpgrid {
+			height: 100%;
+			grid-auto-columns: minmax(10em, 1fr);
+		}
+		.vpdaylabels {
+			min-width: 30%;
+			display: flex;
+			align-items: center;
+		}
+		.vplabel {
+			white-space: nowrap;
+		}
+		</style>
+	</span>
+
+	<span ng-if="vpgrid.view.expand">
+		<style>
+		#vpgrid {
+			grid-auto-columns: 1fr;
+		}
+		#vpgrid.flexrow {
+			height: 100%;
+		}
+		</style>
+	</span>
+</span>
+
+<span ng-if="vpgrid.view.list">
+	<style>
+	#vpgrid {
+		width: 100%;
+		height: {{vpgrid.scroll_size}}%;
+		grid-auto-flow: row;
+		grid-auto-rows: minmax(min-content, 1fr);
+		grid-template-columns: 5fr repeat(37, 1fr) 2em;
+	}
+	.vphdr {
+		grid-column: 1;
+	}
+	.vpftr {
+		grid-column: 39;
+	}
+	.vpday {
+		flex-direction: column;
+		min-width: 2em;
+	}
+	.vpday.offset0 {grid-column-start: 2;}
+	.vpday.offset1 {grid-column-start: 3;}
+	.vpday.offset2 {grid-column-start: 4;}
+	.vpday.offset3 {grid-column-start: 5;}
+	.vpday.offset4 {grid-column-start: 6;}
+	.vpday.offset5 {grid-column-start: 7;}
+	.vpday.offset6 {grid-column-start: 8;}
+	.vpnum {
+		width: fit-content;
+		width: -moz-fit-content;
+		padding: 0.25em 0.5em;
+		margin: 1px;
+	}
+	.vplabel.multiday {
+		height: calc(1.2em * {{vpgrid.multidayscale}});
+		width: 100%;
+		padding: 0 0.5em;
+	}
+	.vplabel.multiday.borderfirst {
+		border-top-left-radius: 1em;
+		border-bottom-left-radius: 1em;
+	}
+	.vplabel.multiday.borderlast {
+		border-top-right-radius: 1em;
+		border-bottom-right-radius: 1em;
+	}
+	</style>
+
+	<span ng-if="vpgrid.view.collapse">
+		<style>
+		.vplabel {
+			white-space: nowrap;
+		}
+		</style>
+	</span>
+</span>
+
+<style>
+@media only print {
+	#vpbox {overflow: visible;}
+	#vpgrid {width: 100%; height: 100%;}
+}
+</style>
+
+<div id="vpbox">
+	<div id="vpnavbar" title="View" ng-if="vpgrid.navbar" ng-click="vpgrid.onclickNavbar($event)">
+		<div>&#9679</div><div>{{vpgrid.navbar.year-2}}</div><div>&#9679</div><div>{{vpgrid.navbar.year-1}}</div><div>&#9679</div><div id="nav-year">{{vpgrid.navbar.year}}</div><div>&#9679</div><div id="nav-year-next">{{vpgrid.navbar.year+1}}</div><div>&#9679</div><div>{{vpgrid.navbar.year+2}}</div><div>&#9679</div>
+	</div>
+	<div id="vpgridbox" tabindex="0" ng-keydown="vpgrid.onkeydown($event)">
+		<div id="vpgrid" ng-class="vpgrid.cls">
+			<div ng-repeat="month in vpgrid.page" id="{{month.id}}" class="vpmonth" ng-class="month.cls">
+				<div class="vphdr vplink" ng-click="month.onclickHdr()">{{month.hdr}}</div>
+				<div ng-repeat="day in month.days" class="vpday" ng-class="day.cls">
+					<div class="vpnum vplink" ng-click="day.onclickNum($event)">{{day.num}}</div>
+					<div class="vpdaylabels" ng-if="day.labels" ng-style="day.labelboxstyle">
+						<div ng-repeat="label in day.labels | orderBy: ['evt.timestamp', 'evt.title']" class="vplabel vplink" title="{{label.evt.cal.name}} - {{label.evt.title}}" ng-style="label.style" ng-click="label.evt.edit()">
+							<span class="vplabeltext" ng-if="vpgrid.singledaytext">{{label.evt.title}}</span>
+						</div>
+					</div>
+				</div>
+				<div class="vpftr"></div>
+				<div ng-repeat="label in month.labels" class="vpmultilabelbox" ng-style="label.multiboxstyle">
+					<div class="vplabel vplink multiday" title="{{label.evt.cal.name}} - {{label.evt.title}}" ng-class="label.cls" ng-style="label.style" ng-click="label.evt.edit()">
+						<span class="vplabeltext" ng-if="vpgrid.multidaytext">{{label.evt.title}}</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="vpcalbar" ng-if="vpgrid.calbar">
+		<div class="vpcalbtn" ng-repeat="cal in vpgrid.calbar | orderBy: 'name'" ng-class="cal.cls" ng-click="cal.toggle()">
+			<span class="vpcalmarker" style="background-color: {{cal.colour.background}}"></span>
+			<span>{{cal.name}}</span>
+		</div>
+	</div>
+</div>
