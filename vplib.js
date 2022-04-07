@@ -169,6 +169,8 @@ angular.module("vpApp").service("vpSettings", function($rootScope, $window) {
 		if (sel.list) setViewInfo('list', 'column');
 		if (sel.expand) setViewInfo('expand', 'collapse');
 		if (sel.collapse) setViewInfo('collapse', 'expand');
+		if (sel.darkon) setViewInfo('darkmode');
+		if (sel.darkoff) setViewInfo(null, 'darkmode');
 	}
 
 	this.getGridView = function() {
@@ -1032,6 +1034,15 @@ angular.module("vpApp").directive("vpGrid", function(vpSettings, vpAlmanac, vpEv
 				vpSettings.setGridView({collapse: true});
 			else
 				vpSettings.setGridView({expand: true});
+
+			box.focus();
+		}
+
+		this.onclickDarkMode = function() {
+			if (view.darkmode)
+				vpSettings.setGridView({darkoff: true});
+			else
+				vpSettings.setGridView({darkon: true});
 
 			box.focus();
 		}

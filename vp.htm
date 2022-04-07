@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto" type="text/css"/>
-<link href="vpmanifest.json" rel="manifest">
-<link href="vp.png" rel="icon">
+<link rel="manifest" href="vpmanifest.json">
+<link rel="icon" href="vp.png">
+<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto|Material+Icons">
 <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.7/angular.min.js"></script>
 <script src="https://apis.google.com/js/api.js"></script>
 <script src="https://apis.google.com/js/platform.js"></script>
@@ -23,50 +23,47 @@ body {
 	flex-direction: column;
 }
 #banner {
-	padding: 0.3em 1em;
-	box-sizing: border-box;
-	position: relative;
+	display: flex;
 	font-family: Roboto;
-	background-color: gainsboro;
+	user-select: none;
+	-ms-user-select: none;
+	-webkit-user-select: none;
+}
+#banner .panel {
+	display: flex;
+}
+#banner .panel.middle {
+	justify-content: center;
+	align-items: center;
+	flex-grow: 1;
+}
+#banner .panel.left {
+}
+#banner .panel.right {
+	flex-direction: column;
+	align-items: end;
+}
+#banner .panel.top {
+	align-items: start;
+}
+#banner .panel.bottom {
+	align-items: end;
 }
 #banner #bantxt {
 	font-weight: 800;
-	font-size: 0.9em;
-	opacity: 0.6;
-	position: absolute;
-	left: 0;
-	top: 0;
-	height: 100%;
-	width: 100%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	pointer-events: none;
 }
-#banner #tools div {
-	font-size: 0.7em;
-	text-align: right;
+#banner #acctxt {
+	font-size: 0.75em;
+	margin: 0.2em 0.6em 0 0;
 }
-#banner #tools img {
-	display: inline;
-	margin-top: 0.3em;
+.material-icons {
+	font-size: 1.25em;
+	padding: 0.1em;
+	margin: 0.2em;
 }
-#banner .toolbtn {
-	opacity: 0.5;
+.panel.left .material-icons {
 }
-#banner .toolbtn.left {
-	float: left;
-	margin-right: 1em;
-}
-#banner .toolbtn.right {
-	float: right;
-	margin-left: 1em;
-}
-#banner .toolbtn:hover {
-	opacity: 1;
-}
-#banner .toolbtn.checked {
-	opacity: 1;
+.panel.right .material-icons {
 }
 #grid {
 	flex-grow: 1;
@@ -76,6 +73,7 @@ body {
 }
 #settings {
 	margin: 3em 2em 6em 5em;
+	padding: 2em;
 }
 #settings .subsection {
 	margin-left: 2em;
@@ -90,6 +88,19 @@ body {
 	min-height: 2em;
 	margin: 3em 0;
 }
+
+#banner {background-color: hsl(0,0%,85%); color: hsl(0,0%,30%);}
+#banner .toolbtn {color: hsl(0,0%,40%);}
+#banner .toolbtn:hover {background-color: hsl(0,0%,75%);}
+#banner .toolbtn.checked {color: hsl(0,0%,10%);}
+#settings {background-color: hsl(0,0%,85%); color: black;}
+
+body.vpdarkmode {background-color: hsl(0,0%,25%); color: hsl(0,0%,80%);}
+.vpdarkmode #banner {background-color: hsl(0,0%,8%); color: unset;}
+.vpdarkmode #banner .toolbtn {color: hsl(0,0%,60%);}
+.vpdarkmode #banner .toolbtn:hover {background-color: hsl(0,0%,22%);}
+.vpdarkmode #banner .toolbtn.checked {color: hsl(0,0%,90%);}
+
 @media only print {
 	#banner {display: none;}
 	#calendarbar {display: none;}
@@ -97,21 +108,30 @@ body {
 </style>
 </head>
 
-<body ng-app="vpApp" ng-controller="vpController as vp" ng-cloak>
+<body class="vpdarkmode" ng-app="vpApp" ng-controller="vpController as vp" ng-cloak>
 <title ng-bind="vpconfig.title">Loading...</title>
 
 <div id="planner" ng-show="vp.show.planner">
 	<div id="banner">
-		<div id="bantxt">{{vpconfig.title}}</div>
-		<div id="tools">
-			<div>{{vpaccount.status.msg}}</div>
-			<img class="toolbtn left" src="column.png" title="Column" draggable="false" ng-click="vpgrid.onclickColumn()" ng-class="vpgrid.view.column"/>
-			<img class="toolbtn left" src="list.png" title="List" draggable="false" ng-click="vpgrid.onclickList()" ng-class="vpgrid.view.list"/>
-			<img class="toolbtn left" src="expand.png" title="Expand" draggable="false" ng-click="vpgrid.onclickExpand()" ng-class="vpgrid.view.expand"/>
-			<img class="toolbtn right" src="settings.png" title="Settings" draggable="false" ng-click="vp.onclickSettings()"/>
-			<img class="toolbtn right" src="print.png" title="Print" draggable="false" ng-click="vpgrid.onclickPrint()"/>
-			<img class="toolbtn right" src="continue.png" title="Continue (Ctrl+Enter)" draggable="false" ng-click="vpgrid.onclickContinue()"/>
-			<img class="toolbtn right" src="sync.png" title="Sync" draggable="false" ng-click="vpgrid.onclickSync($event)"/>
+		<div class="panel left bottom">
+			<div class="toolbtn material-icons" title="Column" ng-click="vpgrid.onclickColumn()" ng-class="vpgrid.view.column">view_column</div>
+			<div class="toolbtn material-icons" title="List" ng-click="vpgrid.onclickList()" ng-class="vpgrid.view.list">view_list</div>
+			<div class="toolbtn material-icons" title="Expand" ng-click="vpgrid.onclickExpand()" ng-class="vpgrid.view.expand">calendar_view_day</div>
+			<div class="toolbtn material-icons" title="Dark Mode" ng-click="vp.onclickDarkMode()" ng-class="vpgrid.view.darkmode">dark_mode</div>
+		</div>
+		<div class="panel middle">
+			<div id="bantxt">{{vpconfig.title}}</div>
+		</div>
+		<div class="panel right">
+			<div class="panel top">
+				<div id="acctxt">{{vpaccount.status.msg}}</div>
+			</div>
+			<div class="panel bottom">
+				<div class="toolbtn material-icons" title="Sync" ng-click="vpgrid.onclickSync($event)">refresh</div>
+				<div class="toolbtn material-icons" title="Continue (Ctrl+Enter)" ng-click="vpgrid.onclickContinue()">sync_alt</div>
+				<div class="toolbtn material-icons" title="Print" ng-click="vpgrid.onclickPrint()">print</div>
+				<div class="toolbtn material-icons" title="Settings" ng-click="vp.onclickSettings()">settings</div>
+			</div>
 		</div>
 	</div>
 	<div id="grid" tabIndex="1"><vp-grid></vp-grid></div>
@@ -237,6 +257,11 @@ angular.module("vpApp").controller("vpController", function(vpAccount, vpSetting
 	this.event_background_options = {"Calendar": "cal", "Event": "evt", "White": "white", "Transparent": ""};
 	var gsignbtn = document.getElementById("g_signbtn");
 
+	this.onclickDarkMode = function() {
+		$scope.vpgrid.onclickDarkMode();
+		updateUI();
+	}
+
 	this.onclickSettings = function() {
 		this.g_signbtn_ok = gsignbtn.hasChildNodes();
 		this.form.$setPristine(true);
@@ -277,10 +302,18 @@ angular.module("vpApp").controller("vpController", function(vpAccount, vpSetting
 
 	$scope.$on("settings:load", function() {
 		$scope.$apply(function() {
+			updateUI();
 			$scope.vp.show = {planner: true};
 			$scope.vpgrid.init();
 		});
 	});
+
+	function updateUI() {
+		if (vpSettings.getGridView().darkmode)
+			document.body.classList.add("vpdarkmode");
+		else
+			document.body.classList.remove("vpdarkmode");
+	}
 
 	vpAccount.connect();
 });

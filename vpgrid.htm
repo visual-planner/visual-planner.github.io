@@ -43,11 +43,7 @@
 }
 .vpday {
 	display: flex;
-	background-color: #eaeaea;
 	opacity: inherit;
-}
-.vpday.weekend {
-	background-color: #d8d8d8;
 }
 .vpnum {
 	font-size: 0.8em;
@@ -104,8 +100,6 @@
 	cursor: pointer;
 }
 #vpnavbar {
-	background-color: gainsboro;
-	opacity: 0.5;
 	font-size: 0.6em;
 	font-weight: bold;
 	padding: 0.3em;
@@ -117,7 +111,6 @@
 }
 #vpcalbar {
 	min-height: 3em;
-	background-color: gainsboro;
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -129,24 +122,32 @@
 }
 .vpcalbtn {
 	padding: 0.5em;
+	margin: 0.2em;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
-}
-.vpcalbtn:hover {
-	background-color: rgba(0,0,0,0.1);
-}
-.vpcalbtn:active {
-	background-color: rgba(0,0,0,0.3);
-}
-.vpcalbtn.checked {
-	opacity: 0.5;
 }
 .vpcalmarker {
 	margin-right: 0.3em;
 	padding: 0em 0.5em;
 	border-radius: 0.25em;
 }
+
+#vpnavbar {background-color: hsl(0,0%,92%); color: hsl(0,0%,50%);}
+.vpday.weekend {background-color: hsl(0,0%,85%);}
+.vpday {background-color: hsl(0,0%,92%);}
+#vpcalbar {background-color: hsl(0,0%,85%);}
+.vpcalbtn:hover {background-color: hsl(0,0%,75%);}
+.vpcalbtn.checked {color: hsl(0,0%,40%);}
+
+.vpdarkmode #vpnavbar {background-color: hsl(0,0%,12%); color: hsl(0,0%,60%);}
+.vpdarkmode #vpgrid {background-color: hsl(0,0%,16%);}
+.vpdarkmode .vpday.weekend {background-color: hsl(0,0%,25%);}
+.vpdarkmode .vpday {background-color: hsl(0,0%,30%);}
+.vpdarkmode .vplabel {filter: brightness(0.8);}
+.vpdarkmode #vpcalbar {background-color: hsl(0,0%,8%);}
+.vpdarkmode .vpcalbtn:hover {background-color: hsl(0,0%,20%);}
+.vpdarkmode .vpcalmarker {filter: brightness(0.8);}
 </style>
 
 <span ng-if="vpgrid.view.column">
