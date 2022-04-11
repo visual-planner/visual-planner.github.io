@@ -108,7 +108,7 @@ body.vpdarkmode {background-color: hsl(0,0%,25%); color: hsl(0,0%,80%);}
 </style>
 </head>
 
-<body class="vpdarkmode" ng-app="vpApp" ng-controller="vpController as vp" ng-cloak>
+<body ng-app="vpApp" ng-controller="vpController as vp" ng-cloak>
 <title ng-bind="vpconfig.title">Loading...</title>
 
 <div id="planner" ng-show="vp.show.planner">
@@ -117,7 +117,7 @@ body.vpdarkmode {background-color: hsl(0,0%,25%); color: hsl(0,0%,80%);}
 			<div class="toolbtn material-icons" title="Column" ng-click="vpgrid.onclickColumn()" ng-class="vpgrid.view.column">view_column</div>
 			<div class="toolbtn material-icons" title="List" ng-click="vpgrid.onclickList()" ng-class="vpgrid.view.list">view_list</div>
 			<div class="toolbtn material-icons" title="Expand" ng-click="vpgrid.onclickExpand()" ng-class="vpgrid.view.expand">calendar_view_day</div>
-			<div class="toolbtn material-icons" title="Dark Mode" ng-click="vp.onclickDarkMode()" ng-class="vpgrid.view.darkmode">dark_mode</div>
+			<div class="toolbtn material-icons" title="Dark Mode" ng-click="vpgrid.onclickDarkMode()" ng-class="vpgrid.view.darkmode">dark_mode</div>
 		</div>
 		<div class="panel middle">
 			<div id="bantxt">{{vpconfig.title}}</div>
@@ -257,10 +257,8 @@ angular.module("vpApp").controller("vpController", function(vpAccount, vpSetting
 	this.event_background_options = {"Calendar": "cal", "Event": "evt", "White": "white", "Transparent": ""};
 	var gsignbtn = document.getElementById("g_signbtn");
 
-	this.onclickDarkMode = function() {
-		$scope.vpgrid.onclickDarkMode();
-		updateUI();
-	}
+	if (vpSettings.getGridView().darkmode)
+		document.body.classList.add("vpdarkmode");
 
 	this.onclickSettings = function() {
 		this.g_signbtn_ok = gsignbtn.hasChildNodes();
@@ -302,18 +300,10 @@ angular.module("vpApp").controller("vpController", function(vpAccount, vpSetting
 
 	$scope.$on("settings:load", function() {
 		$scope.$apply(function() {
-			updateUI();
 			$scope.vp.show = {planner: true};
 			$scope.vpgrid.init();
 		});
 	});
-
-	function updateUI() {
-		if (vpSettings.getGridView().darkmode)
-			document.body.classList.add("vpdarkmode");
-		else
-			document.body.classList.remove("vpdarkmode");
-	}
 
 	vpAccount.connect();
 });

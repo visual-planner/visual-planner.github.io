@@ -169,8 +169,12 @@ angular.module("vpApp").service("vpSettings", function($rootScope, $window) {
 		if (sel.list) setViewInfo('list', 'column');
 		if (sel.expand) setViewInfo('expand', 'collapse');
 		if (sel.collapse) setViewInfo('collapse', 'expand');
-		if (sel.darkon) setViewInfo('darkmode');
-		if (sel.darkoff) setViewInfo(null, 'darkmode');
+		if (sel.darktog) {
+			if (gridview.darkmode)
+				setViewInfo(null, 'darkmode');
+			else
+				setViewInfo('darkmode');
+		}
 	}
 
 	this.getGridView = function() {
@@ -1039,10 +1043,8 @@ angular.module("vpApp").directive("vpGrid", function(vpSettings, vpAlmanac, vpEv
 		}
 
 		this.onclickDarkMode = function() {
-			if (view.darkmode)
-				vpSettings.setGridView({darkoff: true});
-			else
-				vpSettings.setGridView({darkon: true});
+			document.body.classList.toggle("vpdarkmode");
+			vpSettings.setGridView({darktog: true});
 
 			box.focus();
 		}
