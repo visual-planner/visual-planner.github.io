@@ -1,21 +1,14 @@
 <style>
 #vpbox {
 	height: 100%;
-	display: flex;
-	flex-direction: column;
-	overflow: hidden;
-}
-#vpgridbox {
-	flex-grow: 1;
-	overflow: auto;
 	border: none;
 	outline: none;
+	--navbarheight: 1.2em;
+	--calbarheight: 2em;
 }
-.hidescroll {
-	scrollbar-width: none;
-}
-.hidescroll::-webkit-scrollbar {
-	display: none;
+#vpscrollbox {
+	overflow: auto;
+	height: calc(100% - var(--navbarheight) - var(--calbarheight));
 }
 #vpgrid {
 	font-size: calc(1.1vh * {{vpgrid.fontscale}});
@@ -100,22 +93,24 @@
 	cursor: pointer;
 }
 #vpnavbar {
-	font-size: 0.6em;
-	font-weight: bold;
-	padding: 0.3em;
-	display: flex;
-	justify-content: space-around;
+	height: var(--navbarheight);
 	user-select: none;
 	-ms-user-select: none;
 	-webkit-user-select: none;
 }
+#vpnavbar .panel {
+	height: 100%;
+	font-size: 0.6em;
+	font-weight: bold;
+	display: flex;
+	justify-content: space-around;
+	align-items: center;
+}
 #vpcalbar {
-	min-height: 3em;
+	height: var(--calbarheight);
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	overflow: hidden;
-	font-size: 0.65em;
 	user-select: none;
 	-ms-user-select: none;
 	-webkit-user-select: none;
@@ -123,6 +118,7 @@
 .vpcalbtn {
 	padding: 0.5em;
 	margin: 0.2em;
+	font-size: 0.65em;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
@@ -131,6 +127,21 @@
 	margin-right: 0.3em;
 	padding: 0em 0.5em;
 	border-radius: 0.25em;
+}
+.vphidetoolbars #vpscrollbox {
+	height: 100%;
+}
+.vphidetoolbars #vpnavbar {
+	display: none;
+}
+.vphidetoolbars #vpcalbar {
+	display: none;
+}
+.hidescroll#vpscrollbox {
+	scrollbar-width: none;
+}
+.hidescroll::-webkit-scrollbar#vpscrollbox {
+	display: none;
 }
 
 #vpnavbar {background-color: hsl(0,0%,92%); color: hsl(0,0%,50%);}
@@ -141,7 +152,7 @@
 .vpcalbtn.checked {color: hsl(0,0%,40%);}
 
 .vpdarkmode #vpnavbar {background-color: hsl(0,0%,12%); color: hsl(0,0%,60%);}
-.vpdarkmode #vpgridbox {background-color: hsl(0,0%,16%);}
+.vpdarkmode #vpscrollbox {background-color: hsl(0,0%,16%);}
 .vpdarkmode .vpday.weekend {background-color: hsl(0,0%,25%);}
 .vpdarkmode .vpday {background-color: hsl(0,0%,30%);}
 .vpdarkmode .vplabel {filter: brightness(0.8);}
@@ -286,18 +297,13 @@
 	</span>
 </span>
 
-<style>
-@media only print {
-	#vpbox {overflow: visible;}
-	#vpgrid {width: 100%; height: 100%;}
-}
-</style>
-
 <div id="vpbox">
-	<div id="vpnavbar" title="View" ng-if="vpgrid.navbar" ng-click="vpgrid.onclickNavbar($event)">
-		<div>&#9679</div><div>{{vpgrid.navbar.year-2}}</div><div>&#9679</div><div>{{vpgrid.navbar.year-1}}</div><div>&#9679</div><div id="nav-year">{{vpgrid.navbar.year}}</div><div>&#9679</div><div id="nav-year-next">{{vpgrid.navbar.year+1}}</div><div>&#9679</div><div>{{vpgrid.navbar.year+2}}</div><div>&#9679</div>
+	<div id="vpnavbar" title="View" ng-click="vpgrid.onclickNavbar($event)">
+		<div class="panel">
+			<div>&#9679;</div><div>{{vpgrid.navbar.year-2}}</div><div>&#9679;</div><div>{{vpgrid.navbar.year-1}}</div><div>&#9679;</div><div>{{vpgrid.navbar.year}}</div><div>&#9679;</div><div>{{vpgrid.navbar.year+1}}</div><div>&#9679;</div><div>{{vpgrid.navbar.year+2}}</div><div>&#9679;</div>
+		</div>
 	</div>
-	<div id="vpgridbox" tabindex="0" ng-keydown="vpgrid.onkeydown($event)">
+	<div id="vpscrollbox" tabindex="0" ng-keydown="vpgrid.onkeydown($event)">
 		<div id="vpgrid" ng-class="vpgrid.cls">
 			<div ng-repeat="month in vpgrid.page" id="{{month.id}}" class="vpmonth" ng-class="month.cls">
 				<div class="vphdr vplink" ng-click="month.onclickHdr()">{{month.hdr}}</div>
@@ -318,7 +324,7 @@
 			</div>
 		</div>
 	</div>
-	<div id="vpcalbar" ng-if="vpgrid.calbar">
+	<div id="vpcalbar">
 		<div class="vpcalbtn" ng-repeat="cal in vpgrid.calbar | orderBy: 'name'" ng-class="cal.cls" ng-click="cal.toggle()">
 			<span class="vpcalmarker" style="background-color: {{cal.colour.background}}"></span>
 			<span>{{cal.name}}</span>

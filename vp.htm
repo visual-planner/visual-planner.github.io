@@ -8,22 +8,19 @@
 <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto|Material+Icons">
 <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.7/angular.min.js"></script>
 <script src="https://apis.google.com/js/api.js"></script>
-<script src="https://apis.google.com/js/platform.js"></script>
+<script src="https://accounts.google.com/gsi/client"></script>
 
 <style>
 body {
 	font-family: Arial;
 	margin: 0;
-	min-width: 600px;
-	min-height: 400px;
-}
-#planner {
-	height: 100vh;
-	display: flex;
-	flex-direction: column;
+	min-width: 200px;
+	min-height: 200px;
+	--bannerheight: 2.6em;
 }
 #banner {
 	display: flex;
+	height: var(--bannerheight);
 	font-family: Roboto;
 	user-select: none;
 	-ms-user-select: none;
@@ -31,52 +28,48 @@ body {
 }
 #banner .panel {
 	display: flex;
+	align-items: center;
 }
 #banner .panel.middle {
 	justify-content: center;
 	align-items: center;
 	flex-grow: 1;
-}
-#banner .panel.left {
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 #banner .panel.right {
-	flex-direction: column;
-	align-items: end;
-}
-#banner .panel.top {
-	align-items: start;
-}
-#banner .panel.bottom {
-	align-items: end;
+	justify-content: end;
 }
 #banner #bantxt {
 	font-weight: 800;
+	white-space: nowrap;
 }
-#banner #acctxt {
-	font-size: 0.75em;
-	margin: 0.2em 0.6em 0 0;
+.contentbox {
+	height: calc(100vh - var(--bannerheight));
 }
-.material-icons {
-	font-size: 1.25em;
-	padding: 0.1em;
-	margin: 0.2em;
-}
-.panel.left .material-icons {
-}
-.panel.right .material-icons {
-}
-#grid {
-	flex-grow: 1;
-	overflow: hidden;
+#planner {
 	border: none;
 	outline: none;
 }
 #settings {
-	margin: 3em 2em 6em 5em;
-	padding: 2em;
+	overflow: auto;
+	padding: 0 5% 3em 5%;
+	box-sizing: border-box;
+}
+#settings h4 {
+	margin-top: 3em;
 }
 #settings .subsection {
 	margin-left: 2em;
+}
+#settings .permission {
+	vertical-align: sub;
+}
+#settings .granted {
+	color: green;
+}
+#settings .denied {
+	color: red;
 }
 #settings input[type=number] {
 	width: 4em;
@@ -84,22 +77,24 @@ body {
 #settings .monthnames {
 	width: 30em;
 }
-#settings #savebtns {
-	min-height: 2em;
-	margin: 3em 0;
+.material-icons {
+	font-size: 1.25em;
+	padding: 0.1em;
+	margin: 0.2em;
 }
 
 #banner {background-color: hsl(0,0%,85%); color: hsl(0,0%,30%);}
 #banner .toolbtn {color: hsl(0,0%,40%);}
 #banner .toolbtn:hover {background-color: hsl(0,0%,75%);}
 #banner .toolbtn.checked {color: hsl(0,0%,10%);}
-#settings {background-color: hsl(0,0%,85%); color: black;}
+#settings {background-color: hsl(0,0%,95%); color: black;}
 
 body.vpdarkmode {background-color: hsl(0,0%,25%); color: hsl(0,0%,80%);}
 .vpdarkmode #banner {background-color: hsl(0,0%,8%); color: unset;}
 .vpdarkmode #banner .toolbtn {color: hsl(0,0%,60%);}
-.vpdarkmode #banner .toolbtn:hover {background-color: hsl(0,0%,22%);}
+.vpdarkmode #banner .toolbtn:hover {background-color: hsl(0,0%,30%);}
 .vpdarkmode #banner .toolbtn.checked {color: hsl(0,0%,90%);}
+.vpdarkmode #settings {background-color: hsl(0,0%,80%);}
 
 @media only print {
 	#banner {display: none;}
@@ -109,203 +104,177 @@ body.vpdarkmode {background-color: hsl(0,0%,25%); color: hsl(0,0%,80%);}
 </head>
 
 <body ng-app="vpApp" ng-controller="vpController as vp" ng-cloak>
-<title ng-bind="vpconfig.title">Loading...</title>
+<title ng-bind="cfg.appdata.title">Loading...</title>
 
-<div id="planner" ng-show="vp.show.planner">
-	<div id="banner">
-		<div class="panel left bottom">
-			<div class="toolbtn material-icons" title="Column" ng-click="vpgrid.onclickColumn()" ng-class="vpgrid.view.column">view_column</div>
-			<div class="toolbtn material-icons" title="List" ng-click="vpgrid.onclickList()" ng-class="vpgrid.view.list">view_list</div>
-			<div class="toolbtn material-icons" title="Expand" ng-click="vpgrid.onclickExpand()" ng-class="vpgrid.view.expand">calendar_view_day</div>
-			<div class="toolbtn material-icons" title="Dark Mode" ng-click="vpgrid.onclickDarkMode()" ng-class="vpgrid.view.darkmode">dark_mode</div>
-		</div>
-		<div class="panel middle">
-			<div id="bantxt">{{vpconfig.title}}</div>
-		</div>
-		<div class="panel right">
-			<div class="panel top">
-				<div id="acctxt">{{vpaccount.status.msg}}</div>
-			</div>
-			<div class="panel bottom">
-				<div class="toolbtn material-icons" title="Sync" ng-click="vpgrid.onclickSync($event)">refresh</div>
-				<div class="toolbtn material-icons" title="Continue (Ctrl+Enter)" ng-click="vpgrid.onclickContinue()">sync_alt</div>
-				<div class="toolbtn material-icons" title="Print" ng-click="vpgrid.onclickPrint()">print</div>
-				<div class="toolbtn material-icons" title="Settings" ng-click="vp.onclickSettings()">settings</div>
-			</div>
-		</div>
+<div id="banner">
+	<div class="panel" ng-show="vp.show.planner">
+		<div class="toolbtn material-icons" title="Column" ng-click="vpgrid.onclickColumn()" ng-class="vpgrid.view.column">view_column</div>
+		<div class="toolbtn material-icons" title="List" ng-click="vpgrid.onclickList()" ng-class="vpgrid.view.list">view_list</div>
+		<div class="toolbtn material-icons" title="Expand" ng-click="vpgrid.onclickExpand()" ng-class="vpgrid.view.expand">calendar_view_day</div>
+		<div class="toolbtn material-icons" title="Dark Mode" ng-click="vpgrid.onclickDarkMode()" ng-class="vpgrid.view.darkmode">dark_mode</div>
 	</div>
-	<div id="grid" tabIndex="1"><vp-grid></vp-grid></div>
+	<div class="panel middle">
+		<div id="bantxt">{{cfg.appdata.title}}</div>
+	</div>
+	<div class="panel right" ng-show="vp.show.planner">
+		<div class="toolbtn material-icons" title="Sync" ng-click="vpgrid.onclickSync($event)">refresh</div>
+		<div class="toolbtn material-icons" title="Continue (Ctrl+Enter)" ng-click="vpgrid.onclickContinue()">sync_alt</div>
+		<div class="toolbtn material-icons" title="Print" ng-click="vpgrid.onclickPrint()">print</div>
+		<div class="toolbtn material-icons" title="Settings" ng-click="vp.onclickSettings()">settings</div>
+	</div>
+	<div class="panel right" ng-show="vp.show.settings">
+		<div class="toolbtn material-icons" title="Close" ng-show="vp.form.$pristine" ng-click="vp.onclickCancel()">close</div>
+		<div class="toolbtn material-icons" title="Save" ng-hide="vp.form.$pristine || !cfg.permissions.drive_appdata" ng-click="vp.onclickSave()">backup</div>
+		<div class="toolbtn material-icons" title="Cancel" ng-hide="vp.form.$pristine" ng-click="vp.onclickCancel()">cancel</div>
+	</div>
 </div>
 
-<div id="settings" ng-show="vp.show.settings">
+<div id="planner" class="contentbox" ng-show="vp.show.planner" tabIndex="1">
+	<vp-grid></vp-grid>
+</div>
+
+<div id="settings" class="contentbox" ng-show="vp.show.settings">
 	<h4>Account</h4>
 	<div class="subsection">
-		<p>{{vpaccount.status.msg}}</p>
-		<p ng-show="vp.g_signbtn_ok"><div id="g_signbtn" class="g-signin2" data-width="300" data-height="60" data-longtitle="true"></div></p>
-		<p ng-show="vpaccount.status.signed_in"><a href="https://myaccount.google.com/permissions" target="_blank">Permissions</a></p>
-		<p ng-show="vpaccount.status.signed_in"><a href="https://drive.google.com/drive/my-drive" target="_blank">Manage Application Data</a>  (Drive > Settings > Manage Apps)</p>
-		<p ng-hide="vpaccount.status.signed_in || vp.g_signbtn_ok"><button ng-click="vpaccount.SignIn();">Sign In</button></p>
-		<p ng-show="vpaccount.status.signed_in"><button ng-click="vpaccount.SignOut();">Sign Out</button></p>
+		<p>
+			<div ng-show="cfg.permissions.view_calendars"><span class="material-icons permission granted">verified_user</span>visual-planner has permission to view your calendars.</div>
+			<div ng-hide="cfg.permissions.view_calendars"><span class="material-icons permission denied">warning</span>visual-planner does not have permission to view your calendars and cannot display any of your calendar events.</div>
+		</p>
+		<p>
+			<div ng-show="cfg.permissions.drive_appdata"><span class="material-icons permission granted">verified_user</span>visual-planner has permission to manage its own application data in your Google Drive.</div>
+			<div ng-hide="cfg.permissions.drive_appdata"><span class="material-icons permission denied">warning</span>visual-planner does not have permission to manage its own application data in your Google Drive and cannot save your settings.</div>
+		</p>
+		<p><a href="https://myaccount.google.com/permissions" target="_blank">Manage Permissions</a></p>
+		<p><a href="https://drive.google.com/drive/my-drive" target="_blank">Manage Application Data</a>  (Drive > Settings > Manage Apps)</p>
 	</div>
 	<form name="vp.form" novalidate>
 	<h4>View</h4>
 	<div class="subsection">
-		<p><input ng-model="vpconfig.title">
+		<p><input ng-model="cfg.appdata.title">
 			Planner title.
 		</p>
-		<p><select ng-model="vpconfig.month_count" ng-options="x for (x, y) in vp.month_count_options"></select>
+		<p><select ng-model="cfg.appdata.month_count" ng-options="x for (x, y) in vp.month_count_options"></select>
 			Number of months to display.  More can be scrolled into view using the mouse wheel or cursor keys.
 		</p>
-		<p><select ng-model="vpconfig.scroll_buffer" ng-options="x for (x, y) in vp.scroll_buffer_options"></select>
+		<p><select ng-model="cfg.appdata.scroll_buffer" ng-options="x for (x, y) in vp.scroll_buffer_options"></select>
 			Scroll buffer.
 		</p>
-		<p><input ng-model="vpconfig.auto_scroll" type="checkbox">
+		<p><input ng-model="cfg.appdata.auto_scroll" type="checkbox">
 			Auto-scroll to current month.  If not selected, the view will always start at the beginning of the year.
 		</p>
 		<div class="subsection">
-			<p><input ng-model="vpconfig.auto_scroll_offset" type="number" min="-12" max="12">
+			<p><input ng-model="cfg.appdata.auto_scroll_offset" type="number" min="-12" max="12">
 				Auto-scroll offset.  For example, -2 will cause the date range to start from two months ago, 0 will start with the current month.
 			</p>
-			<p><input ng-model="vpconfig.first_month" type="number" min="1" max="12">
+			<p><input ng-model="cfg.appdata.first_month" type="number" min="1" max="12">
 				First month of year.
 			</p>
 		</div>
-		<p><input ng-model="vpconfig.hide_scrollbars" type="checkbox">
+		<p><input ng-model="cfg.appdata.hide_scrollbars" type="checkbox">
 			Hide scrollbars.
 		</p>
-		<p><input ng-model="vpconfig.same_row_height" type="checkbox">
+		<p><input ng-model="cfg.appdata.same_row_height" type="checkbox">
 			Make all rows the same height.
 		</p>
-		<p><input ng-model="vpconfig.align_weekends" type="checkbox">
+		<p><input ng-model="cfg.appdata.align_weekends" type="checkbox">
 			Align weekends.
 		</p>
-		<p><input ng-model="vpconfig.weekends">
+		<p><input ng-model="cfg.appdata.weekends">
 			Weekends.  (0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat)
 		</p>
-		<p><input ng-model="vpconfig.first_day_of_week" type="number" min="0" max="6">
+		<p><input ng-model="cfg.appdata.first_day_of_week" type="number" min="0" max="6">
 			First day of week.  (0-6)
 		</p>
-		<p><input ng-model="vpconfig.font_scale_pc" type="number" min="50" max="200">
+		<p><input ng-model="cfg.appdata.font_scale_pc" type="number" min="50" max="200">
 			% Font scale.
 		</p>
-		<p><input ng-model="vpconfig.past_opacity" type="number" min="0" max="1">
+		<p><input ng-model="cfg.appdata.past_opacity" type="number" min="0" max="1">
 			Opacity of past months.  (1 = opaque)
 		</p>
-		<p><input class="monthnames" ng-model="vpconfig.month_names">
+		<p><input class="monthnames" ng-model="cfg.appdata.month_names">
 			Month names.
 		</p>
 	</div>
 	<h4>Events</h4>
 	<div class="subsection">
 		<div ng-hide="true">
-		<p><input ng-model="vpconfig.proportional_events" type="checkbox">
+		<p><input ng-model="cfg.appdata.proportional_events" type="checkbox">
 			Display event markers in proportion to their actual duration.  Events outside the visible event range will not be shown.
 		</p>
 		<div class="subsection">
-			<p><input ng-model="vpconfig.proportional_start_hour" type="number" min="0" max="24">
+			<p><input ng-model="cfg.appdata.proportional_start_hour" type="number" min="0" max="24">
 				Start hour of visible event range.
 			</p>
-			<p><input ng-model="vpconfig.proportional_end_hour" type="number" min="0" max="24">
+			<p><input ng-model="cfg.appdata.proportional_end_hour" type="number" min="0" max="24">
 				End hour of visible event range.
 			</p>
 		</div>
 		</div>
-		<p><input ng-model="vpconfig.show_timed_events" type="checkbox">
+		<p><input ng-model="cfg.appdata.show_timed_events" type="checkbox">
 			Show 'timed' events.
 		</p>
-		<p><input ng-model="vpconfig.show_all_day_events" type="checkbox">
+		<p><input ng-model="cfg.appdata.show_all_day_events" type="checkbox">
 			Show 'all day' events.
 		</p>
 		<div class="subsection">
-			<p><input ng-model="vpconfig.single_day_as_multi_day" type="checkbox">
+			<p><input ng-model="cfg.appdata.single_day_as_multi_day" type="checkbox">
 				Single day as multi-day (vertical bar).
 			</p>
 		</div>
-		<p><input ng-model="vpconfig.text_on_singleday_events" type="checkbox">
+		<p><input ng-model="cfg.appdata.text_on_singleday_events" type="checkbox">
 			Show text on single-day events.
 		</p>
-		<p><input ng-model="vpconfig.text_on_multiday_events" type="checkbox">
+		<p><input ng-model="cfg.appdata.text_on_multiday_events" type="checkbox">
 			Show text on multi-day events.
 		</p>
-		<p><input ng-model="vpconfig.scale_of_multiday_events" type="number">
+		<p><input ng-model="cfg.appdata.scale_of_multiday_events" type="number">
 			% Scale of multi-day events.
 		</p>
-		<p><select ng-model="vpconfig.event_background"  ng-options="x for (x, y) in vp.event_background_options"></select>
+		<p><select ng-model="cfg.appdata.event_background"  ng-options="x for (x, y) in vp.event_background_options"></select>
 			Event background.
 		</p>
 	</div>
-	<div id="savebtns">
-		<button ng-hide="vp.busy" ng-click="vp.onclickCancel()">Cancel</button>
-		<button ng-hide="vp.form.$pristine || vp.busy" ng-click="vp.onclickSave()">Save</button>
-		<div ng-show="vp.busy"><i>Saving...</i></div>
-	</div>
 	</form>
-		<p><a href="https://visual-planner.github.io" target="_blank">visual-planner home</a></p>
-		<p><a href="https://groups.google.com/group/visual-planner-discuss" target="_blank">visual-planner discussion group</a></p>
+	<h4></h4>
+	<p><a href="https://visual-planner.github.io" target="_blank">visual-planner home</a></p>
+	<p><a href="https://groups.google.com/group/visual-planner-discuss" target="_blank">visual-planner discussion group</a></p>
 </div>
 
 <script src="vplib.js" type='text/javascript'></script>
 
 <script type='text/javascript'>
-angular.module("vpApp").controller("vpController", function(vpAccount, vpSettings, vpEvents, $scope, $timeout) {
-	$scope.vpaccount = vpAccount;
-	$scope.vpconfig = vpSettings.getConfig();
+angular.module("vpApp").controller("vpController", function(vpConfiguration, $scope) {
+	$scope.cfg = vpConfiguration;
 	this.show = {planner: true};
-	this.busy = false;
 	this.month_count_options = {"3": 3, "4": 4, "6": 6, "8": 8, "10": 10, "12": 12};
-	this.scroll_buffer_options = {"No scrolling": 0, " 3": 3, " 6": 6, " 12": 12};
+	this.scroll_buffer_options = {"No scrolling": 0, "3": 3, "6": 6, "12": 12};
 	this.event_background_options = {"Calendar": "cal", "Event": "evt", "White": "white", "Transparent": ""};
-	var gsignbtn = document.getElementById("g_signbtn");
 
-	if (vpSettings.getGridView().darkmode)
+	if (vpConfiguration.gridview.darkmode)
 		document.body.classList.add("vpdarkmode");
 
 	this.onclickSettings = function() {
-		this.g_signbtn_ok = gsignbtn.hasChildNodes();
 		this.form.$setPristine(true);
 		this.show = {settings: true};
 	}
 
 	this.onclickCancel = function() {
-		vpSettings.revert();
+		vpConfiguration.revertAppdata();
 		this.show = {planner: true};
 	}
 
 	this.onclickSave = function() {
-		this.busy = true;
-		if (vpAccount.status.signed_in)
-			vpSettings.save();
-		$timeout(function() {
-			this.busy = false;
-			this.show = {planner: true};
-			vpEvents.reset();
-			$scope.vpgrid.init();
-		}.bind(this), 2000)
+		vpConfiguration.saveAppData();
+		this.show = {planner: true};
+		$scope.vpgrid.reset();
 	}
 
-	$scope.$on("account:signin", function() {
-		$scope.$apply(function() {
-			vpSettings.load();
-		});
-	});
-
-	$scope.$on("account:signout", function() {
-		$scope.$apply(function() {
-			vpSettings.reset();
-			vpEvents.reset();
-			$scope.vpgrid.init();
-			$scope.vp.show = {planner: true};
-		});
-	});
-
-	$scope.$on("settings:load", function() {
+	$scope.$on("configuration:load", function() {
 		$scope.$apply(function() {
 			$scope.vp.show = {planner: true};
-			$scope.vpgrid.init();
+			$scope.vpgrid.reset();
 		});
 	});
-
-	vpAccount.connect();
 });
 </script>
 
