@@ -9,10 +9,12 @@
 <style>
 body {
 	font-family: Arial;
-	height: 100vh;
 	margin: 0;
 	min-width: 600px;
 	min-height: 400px;
+}
+#printgrid {
+	height: 100vh;
 }
 .today .vpnum {
 	font-weight: normal !important;
@@ -23,13 +25,20 @@ body {
 <title>Print</title>
 </head>
 <body ng-app="vpPrintApp" ng-cloak>
-<vp-print-grid class="vphidetoolbars"/>
+<vp-print-grid id="printgrid"/>
 <script type='text/javascript'>
 angular.module('vpPrintApp', [])
 	.directive("vpPrintGrid", function($window) {
 		return {
 			controller: function($scope) {
 				$scope.vpgrid = $window.opener.vpprintgrid;
+				$scope.vpgrid.navbar.show = false;
+				$scope.vpgrid.calbar.show = false;
+				$scope.vpgrid.view.darkmode.checked = false;
+				$scope.vpgrid.past_opacity = 1;
+				$scope.vpgrid.scroll_size = 100;
+				$scope.vpgrid.scroll_size_portrait = 100;
+				$scope.vpgrid.multi_day_opacity = 1;
 			},
 			templateUrl: "vpgrid.htm",
 			restrict: 'E'

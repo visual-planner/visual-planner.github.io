@@ -3,8 +3,8 @@
 	height: inherit;
 	border: none;
 	outline: none;
-	--navbarheight: 1.2em;
-	--calbarheight: 2em;
+	--navbarheight: 0em;
+	--calbarheight: 0em;
 }
 #vpscrollbox {
 	overflow: auto;
@@ -128,15 +128,6 @@
 	padding: 0em 0.5em;
 	border-radius: 0.25em;
 }
-.vphidetoolbars #vpscrollbox {
-	height: 100%;
-}
-.vphidetoolbars #vpnavbar {
-	display: none;
-}
-.vphidetoolbars #vpcalbar {
-	display: none;
-}
 .hidescroll#vpscrollbox {
 	scrollbar-width: none;
 }
@@ -150,16 +141,36 @@
 #vpcalbar {background-color: hsl(0,0%,85%);}
 .vpcalbtn:hover {background-color: hsl(0,0%,75%);}
 .vpcalbtn.checked {color: hsl(0,0%,40%);}
-
-.vpdarkmode #vpnavbar {background-color: hsl(0,0%,12%); color: hsl(0,0%,60%);}
-.vpdarkmode #vpscrollbox {background-color: hsl(0,0%,16%);}
-.vpdarkmode .vpday.weekend {background-color: hsl(0,0%,25%);}
-.vpdarkmode .vpday {background-color: hsl(0,0%,30%);}
-.vpdarkmode .vplabel {filter: brightness(0.8);}
-.vpdarkmode #vpcalbar {background-color: hsl(0,0%,8%);}
-.vpdarkmode .vpcalbtn:hover {background-color: hsl(0,0%,20%);}
-.vpdarkmode .vpcalmarker {filter: brightness(0.8);}
 </style>
+
+<span ng-if="vpgrid.view.darkmode.checked">
+	<style>
+	#vpnavbar {background-color: hsl(0,0%,12%); color: hsl(0,0%,60%);}
+	#vpscrollbox {background-color: hsl(0,0%,16%);}
+	.vpday.weekend {background-color: hsl(0,0%,25%);}
+	.vpday {background-color: hsl(0,0%,30%);}
+	.vplabel {filter: brightness(0.8);}
+	#vpcalbar {background-color: hsl(0,0%,8%);}
+	.vpcalbtn:hover {background-color: hsl(0,0%,20%);}
+	.vpcalmarker {filter: brightness(0.8);}
+	</style>
+</span>
+
+<span ng-if="vpgrid.navbar.show">
+	<style>
+	#vpbox {
+		--navbarheight: 1.2em;
+	}
+	</style>
+</span>
+
+<span ng-if="vpgrid.calbar.show">
+	<style>
+	#vpbox {
+		--calbarheight: 2em;
+	}
+	</style>
+</span>
 
 <span ng-if="vpgrid.view.column">
 	<style>
@@ -298,7 +309,7 @@
 </span>
 
 <div id="vpbox">
-	<div id="vpnavbar" title="View" ng-click="vpgrid.onclickNavbar($event)">
+	<div id="vpnavbar" ng-if="vpgrid.navbar.show" title="View" ng-click="vpgrid.onclickNavbar($event)">
 		<div class="panel">
 			<div>&#9679;</div><div>{{vpgrid.navbar.year-2}}</div><div>&#9679;</div><div>{{vpgrid.navbar.year-1}}</div><div>&#9679;</div><div>{{vpgrid.navbar.year}}</div><div>&#9679;</div><div>{{vpgrid.navbar.year+1}}</div><div>&#9679;</div><div>{{vpgrid.navbar.year+2}}</div><div>&#9679;</div>
 		</div>
@@ -324,8 +335,8 @@
 			</div>
 		</div>
 	</div>
-	<div id="vpcalbar">
-		<div class="vpcalbtn" ng-repeat="cal in vpgrid.calbar | orderBy: 'name'" ng-class="cal.cls" ng-click="cal.toggle()">
+	<div id="vpcalbar" ng-if="vpgrid.calbar.show">
+		<div class="vpcalbtn" ng-repeat="cal in vpgrid.calbar.calendars | orderBy: 'name'" ng-class="cal.cls" ng-click="cal.toggle()">
 			<span class="vpcalmarker" style="background-color: {{cal.colour.background}}"></span>
 			<span>{{cal.name}}</span>
 		</div>

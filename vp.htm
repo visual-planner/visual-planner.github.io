@@ -88,19 +88,18 @@ body {
 #banner .toolbtn:hover {background-color: hsl(0,0%,75%);}
 #banner .toolbtn.checked {color: hsl(0,0%,10%);}
 #settings {background-color: hsl(0,0%,95%); color: black;}
-
-body.vpdarkmode {background-color: hsl(0,0%,25%); color: hsl(0,0%,80%);}
-.vpdarkmode #banner {background-color: hsl(0,0%,8%); color: unset;}
-.vpdarkmode #banner .toolbtn {color: hsl(0,0%,60%);}
-.vpdarkmode #banner .toolbtn:hover {background-color: hsl(0,0%,30%);}
-.vpdarkmode #banner .toolbtn.checked {color: hsl(0,0%,90%);}
-.vpdarkmode #settings {background-color: hsl(0,0%,80%);}
-
-@media only print {
-	#banner {display: none;}
-	#calendarbar {display: none;}
-}
 </style>
+
+<span ng-if="cfg.gridview.darkmode.checked">
+	<style>
+	body {background-color: hsl(0,0%,25%); color: hsl(0,0%,80%);}
+	#banner {background-color: hsl(0,0%,8%); color: unset;}
+	#banner .toolbtn {color: hsl(0,0%,60%);}
+	#banner .toolbtn:hover {background-color: hsl(0,0%,30%);}
+	#banner .toolbtn.checked {color: hsl(0,0%,90%);}
+	#settings {background-color: hsl(0,0%,80%);}
+	</style>
+</span>
 </head>
 
 <body ng-app="vpApp" ng-controller="vpController as vp" ng-cloak>
@@ -242,14 +241,26 @@ body.vpdarkmode {background-color: hsl(0,0%,25%); color: hsl(0,0%,80%);}
 
 <script type='text/javascript'>
 angular.module("vpApp").controller("vpController", function(vpConfiguration, $scope) {
-	$scope.cfg = vpConfiguration;
-	this.show = {planner: true};
 	this.month_count_options = {"3": 3, "4": 4, "6": 6, "8": 8, "10": 10, "12": 12};
 	this.scroll_buffer_options = {"No scrolling": 0, "3": 3, "6": 6, "12": 12};
 	this.event_background_options = {"Calendar": "cal", "Event": "evt", "White": "white", "Transparent": ""};
+	this.show = {};
+	$scope.cfg = vpConfiguration;
 
-	if (vpConfiguration.gridview.darkmode)
-		document.body.classList.add("vpdarkmode");
+	gapi.load('client', function(){gapi.client.init({}).then(app_load);});
+
+	function app_load() {
+		vpConfiguration.Load_then(app_start);
+	}
+
+	function app_start() {
+		$scope.$apply(function() {
+			$scope.vp.show = {planner: true};
+			$scope.vpgrid.navbar.show = true;
+			$scope.vpgrid.calbar.show = true;
+			$scope.vpgrid.reset();
+		});
+	}
 
 	this.onclickSettings = function() {
 		this.form.$setPristine(true);
@@ -266,13 +277,6 @@ angular.module("vpApp").controller("vpController", function(vpConfiguration, $sc
 		this.show = {planner: true};
 		$scope.vpgrid.reset();
 	}
-
-	$scope.$on("configuration:load", function() {
-		$scope.$apply(function() {
-			$scope.vp.show = {planner: true};
-			$scope.vpgrid.reset();
-		});
-	});
 });
 </script>
 

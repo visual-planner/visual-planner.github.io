@@ -3,9 +3,13 @@ angular.module("vpApp", []);
 
 //////////////////////////////////////////////////////////////////////
 
-angular.module("vpApp").service("vpConfiguration", function($rootScope, $window) {
+angular.module("vpApp").service("vpConfiguration", function($window) {
+	function onload() {};
 
-	gapi.load('client', function(){gapi.client.init({}).then(loadPermissions);});
+	this.Load_then = function(doThis) {
+		onload = doThis;
+		loadPermissions();
+	}
 
 	var permissions = {};
 	this.permissions = permissions;
@@ -240,10 +244,6 @@ angular.module("vpApp").service("vpConfiguration", function($rootScope, $window)
 			else
 				setViewInfo('darkmode');
 		}
-	}
-
-	function onload() {
-		$rootScope.$broadcast("configuration:load");
 	}
 
 	function fail(reason) {
@@ -822,6 +822,9 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpAlmanac,
 		var pagelength;
 		var vislength;
 
+		$scope.vpgrid.navbar = {};
+		$scope.vpgrid.calbar = {};
+
 		showGrid(false);
 
 		function initUI() {
@@ -859,8 +862,8 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpAlmanac,
 			$scope.vpgrid.singledaytext = cfg.text_on_singleday_events;
 			$scope.vpgrid.multidaytext = cfg.text_on_multiday_events;
 			$scope.vpgrid.multidayscale = cfg.scale_of_multiday_events/100;
-			$scope.vpgrid.calbar = vpEvents.calendars;
-			$scope.vpgrid.navbar = {year: vdt.dt.getFullYear()};
+			$scope.vpgrid.navbar.year = vdt.dt.getFullYear();
+			$scope.vpgrid.calbar.calendars = vpEvents.calendars;
 
 			$scope.vpgrid.cls = {};
 			if (!cfg.same_row_height)
@@ -970,9 +973,7 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpAlmanac,
 		}
 
 		this.onclickDarkMode = function() {
-			document.body.classList.toggle("vpdarkmode");
 			vpConfiguration.setGridView({darktog: true});
-
 			box.focus();
 		}
 
@@ -997,20 +998,11 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpAlmanac,
 		this.onclickPrint = function() {
 			var visinfo = getVisInfo();
 
-			$window.vpprintgrid = {
-				page: visinfo.months,
-				gridareas: getGridAreas(visinfo.months),
-				view: $scope.vpgrid.view,
-				cls: $scope.vpgrid.cls,
-				fontscale: $scope.vpgrid.fontscale,
-				past_opacity: 1,
-				scroll_size: 100,
-				scroll_size_portrait: 100,
-				multi_day_opacity: 1,
-				singledaytext: $scope.vpgrid.singledaytext,
-				multidaytext: $scope.vpgrid.multidaytext,
-				multidayscale: $scope.vpgrid.multidayscale
-			};
+			$window.vpprintgrid = {};
+			angular.copy($scope.vpgrid, $window.vpprintgrid);
+
+			$window.vpprintgrid.page = visinfo.months;
+			$window.vpprintgrid.gridareas = getGridAreas(visinfo.months);
 
 			$window.open("vpprint.htm");
 		}
