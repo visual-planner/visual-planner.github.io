@@ -43,11 +43,6 @@
 	flex-shrink: 0;
 	z-index: 2;
 }
-.today .vpnum {
-	font-weight: bold;
-	color: white;
-	background-color: red;
-}
 .vpdaylabels {
 	overflow: hidden;
 }
@@ -168,6 +163,16 @@
 	<style>
 	#vpbox {
 		--calbarheight: 2em;
+	}
+	</style>
+</span>
+
+<span ng-if="vpgrid.redboxtoday">
+	<style>
+	.today .vpnum {
+		font-weight: bold;
+		color: white;
+		background-color: red;
 	}
 	</style>
 </span>
