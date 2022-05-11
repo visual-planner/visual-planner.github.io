@@ -244,8 +244,9 @@ angular.module("vpApp").controller("vpController", function(vpConfiguration, $sc
 	this.month_count_options = {"3": 3, "4": 4, "6": 6, "8": 8, "10": 10, "12": 12};
 	this.scroll_buffer_options = {"No scrolling": 0, "3": 3, "6": 6, "12": 12};
 	this.event_background_options = {"Calendar": "cal", "Event": "evt", "White": "white", "Transparent": ""};
-	this.show = {planner: true};
+
 	$scope.cfg = vpConfiguration;
+	this.show = {planner: true};
 
 	gapi.load('client', function(){gapi.client.init({}).then(app_load);});
 
@@ -257,7 +258,7 @@ angular.module("vpApp").controller("vpController", function(vpConfiguration, $sc
 		$scope.$apply(function() {
 			$scope.vpgrid.navbar.show = true;
 			$scope.vpgrid.calbar.show = true;
-			$scope.vpgrid.reset();
+			$scope.vpgrid.start();
 		});
 	}
 

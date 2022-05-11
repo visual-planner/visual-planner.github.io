@@ -257,27 +257,58 @@ angular.module("vpApp").service("vpConfiguration", function($window) {
 
 angular.module("vpApp").service("vpEvents", function($window, $timeout, vpConfiguration) {
 	var cfg = vpConfiguration.appdata;
-	var calendars;
-	var reqcal;
 	var isoSpan = {};
 	var fAdd = function(){};
 	var fRemove = function(){};
 	var fUpdate = function(){};
 
-	function load() {
-		if (reqcal) {
+	var calendarlist = [];
+	this.calendarlist = calendarlist;
+
+	this.loadCalendarList = function() {
+		if (vpConfiguration.permissions.view_calendars)
 			reqCalendars({});
-		}
-		else {
-			for (cal of calendars)
-				cal.loadEvents();
-		}
+	}
+
+	this.addCalendar = function(id, name, colour, textcolour) {
+		calendarlist.push(new VpCalendar({
+			id: id,
+			summary: name,
+			backgroundColor: colour,
+			foregroundColor: textcolour
+		}));
+	}
+
+	this.register = function(add, remove, update) {
+		fAdd = add;
+		fRemove = remove;
+		fUpdate = update;
+	}
+
+	this.setStartDate = function(vdt) {
+		isoSpan.start = vdt.dt.toISOString();
+	}
+
+	this.setEndDate = function(vdt) {
+		isoSpan.end = vdt.dt.toISOString();
+	}
+
+	this.load = function() {
+		for (cal of calendarlist)
+			cal.loadEvents();
+	}
+
+	this.reload = function() {
+		fRemove();
+		this.load();
+	}
+
+	this.sync = function() {
+		for (cal of calendarlist)
+			cal.syncEvents();
 	}
 
 	function reqCalendars(reqparams) {
-		if (!vpConfiguration.permissions.view_calendars)
-			return;
-
 		gapi.client.request({
 			path: "https://www.googleapis.com/calendar/v3/users/me/calendarList",
 			method: "GET",
@@ -288,7 +319,7 @@ angular.module("vpApp").service("vpEvents", function($window, $timeout, vpConfig
 		function rcv(response) {
 			for (item of response.result.items) {
 				if (item.selected)
-					calendars.push(new VpCalendar(item));
+					calendarlist.push(new VpCalendar(item));
 			}
 
 			if (response.result.nextPageToken) {
@@ -298,8 +329,6 @@ angular.module("vpApp").service("vpEvents", function($window, $timeout, vpConfig
 
 			$timeout();
 		};
-
-		reqcal = false;
 	}
 
 	function VpCalendar(item) {
@@ -313,9 +342,6 @@ angular.module("vpApp").service("vpEvents", function($window, $timeout, vpConfig
 		syncStg(false);
 
 		function reqEvents(reqparams) {
-			if (!vpConfiguration.permissions.view_calendars)
-				return;
-
 			gapi.client.request({
 				path: "https://www.googleapis.com/calendar/v3/calendars/" + encodeURIComponent(id) + "/events",
 				method: "GET",
@@ -462,42 +488,6 @@ angular.module("vpApp").service("vpEvents", function($window, $timeout, vpConfig
 			msg = false;
 		}
 	}
-
-	this.reset = function() {
-		reqcal = true;
-		calendars = [];
-		this.calendars = calendars;
-	}
-
-	this.register = function(add, remove, update) {
-		fAdd = add;
-		fRemove = remove;
-		fUpdate = update;
-	}
-
-	this.setStartDate = function(vdt) {
-		isoSpan.start = vdt.dt.toISOString();
-	}
-
-	this.setEndDate = function(vdt) {
-		isoSpan.end = vdt.dt.toISOString();
-	}
-
-	this.load = function() {
-		load();
-	}
-
-	this.reload = function() {
-		fRemove();
-		load();
-	}
-
-	this.sync = function() {
-		for (cal of calendars)
-			cal.syncEvents();
-	}
-
-	this.reset();
 });
 
 
@@ -863,7 +853,7 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpAlmanac,
 			$scope.vpgrid.multidaytext = cfg.text_on_multiday_events;
 			$scope.vpgrid.multidayscale = cfg.scale_of_multiday_events/100;
 			$scope.vpgrid.navbar.year = vdt.dt.getFullYear();
-			$scope.vpgrid.calbar.calendars = vpEvents.calendars;
+			$scope.vpgrid.calbar.calendars = vpEvents.calendarlist;
 
 			$scope.vpgrid.cls = {};
 			if (!cfg.same_row_height)
@@ -931,8 +921,13 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpAlmanac,
 			return info;
 		}
 
+		this.start = function() {
+			vpEvents.loadCalendarList();
+			initUI();
+			updateUI();
+		}
+
 		this.reset = function() {
-			vpEvents.reset();
 			initUI();
 			updateUI();
 		}
@@ -1037,9 +1032,6 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpAlmanac,
 
 			evt.preventDefault();
 		}
-
-		//if ($scope.vpembed)
-			//this.init();
 	}
 
 	function fLink(scope, element, attrs) {
