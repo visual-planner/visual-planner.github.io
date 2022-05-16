@@ -3,20 +3,23 @@ angular.module("vpApp", []);
 
 //////////////////////////////////////////////////////////////////////
 
-angular.module("vpApp").service("vpConfiguration", function($window) {
-	function onload() {};
+angular.module("vpApp").service("vpConfiguration", function($window, $location, $rootScope) {
+	$rootScope.vp = {};
 
-	this.Load_then = function(doThis) {
-		onload = doThis;
+	this.Load = function() {
 		loadPermissions();
 	}
 
+	function onload() {
+		$rootScope.$apply("vp.configload = true");
+	};
+
 	var permissions = {};
-	this.permissions = permissions;
+	$rootScope.vp.permissions = permissions;
 
 	function loadPermissions() {
 		google.accounts.oauth2.initTokenClient({
-			client_id: window.location.hash.length > 0 ? window.location.hash.substr(1) : "186424320143-vb1h85auvvpnojvmeg9gi6lv9aan4ggi.apps.googleusercontent.com",
+			client_id: $location.$$hash ? $location.$$hash : "186424320143-vb1h85auvvpnojvmeg9gi6lv9aan4ggi.apps.googleusercontent.com",
 			scope: "https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/drive.appdata",
 			prompt: "",
 			callback: rcv
@@ -29,48 +32,8 @@ angular.module("vpApp").service("vpConfiguration", function($window) {
 			if (google.accounts.oauth2.hasGrantedAllScopes(gapi.client.getToken(), "https://www.googleapis.com/auth/drive.appdata"))
 				permissions.drive_appdata = true;
 
-			loadGCalSettings();
 			loadAppData();
 		}
-	}
-
-	var gcal = {};
-	this.gcal = gcal;
-
-	function loadGCalSettings() {
-		if (!permissions.view_calendars)
-			return;
-
-		gapi.client.request({
-			path: "https://www.googleapis.com/calendar/v3/users/me/settings/format24HourTime",
-			method: "GET",
-			params: {}
-		})
-		.then(rcv, fail);
-
-		gapi.client.request({
-			path: "https://www.googleapis.com/calendar/v3/colors",
-			method: "GET"
-		})
-		.then(rcv, fail);
-
-		function rcv(response) {
-			if (response.result)
-			if (response.result.kind == "calendar#setting")
-			if (response.result.id == "format24HourTime")
-				VpDateTime.time24h = (response.result.value == "true");
-
-			if (response.result)
-			if (response.result.kind == "calendar#colors")
-				gcal.colours = response.result;
-		};
-	}
-
-	this.gcal.getEventColour = function(cid) {
-		if (gcal.colours.event)
-			return {text: gcal.colours.event[cid].foreground, background: gcal.colours.event[cid].background};
-
-		return {};
 	}
 
 	var appdata = {
@@ -99,7 +62,7 @@ angular.module("vpApp").service("vpConfiguration", function($window) {
 		scale_of_multiday_events: 100,
 		event_background: 'cal'
 	};
-	this.appdata = appdata;
+	$rootScope.vp.appdata = appdata;
 
 	var drive = {};
 	angular.copy(appdata, drive);
@@ -221,7 +184,7 @@ angular.module("vpApp").service("vpConfiguration", function($window) {
 		setViewInfo('column');
 		setViewInfo('collapse');
 	}
-	this.gridview = gridview;
+	$rootScope.vp.gridview = gridview;
 
 	function setViewInfo(add, del) {
 		if (add)
@@ -255,58 +218,32 @@ angular.module("vpApp").service("vpConfiguration", function($window) {
 
 //////////////////////////////////////////////////////////////////////
 
-angular.module("vpApp").service("vpEvents", function($window, $timeout, vpConfiguration) {
-	var cfg = vpConfiguration.appdata;
+angular.module("vpApp").service("vpGCal", function($rootScope, $window) {
+	var cfg = $rootScope.vp.appdata;
+	var apikey = "";
 	var isoSpan = {};
 	var fAdd = function(){};
 	var fRemove = function(){};
 	var fUpdate = function(){};
 
+	$rootScope.$watch("vp.configload", function() {
+		if ($rootScope.vp.configload)
+			loadCalendarList();
+	});
+
 	var calendarlist = [];
-	this.calendarlist = calendarlist;
+	$rootScope.vp.calendarlist = calendarlist;
 
-	this.loadCalendarList = function() {
-		if (vpConfiguration.permissions.view_calendars)
+	function loadCalendarList() {
+		if ($rootScope.vp.permissions.view_calendars) {
 			reqCalendars({});
+			loadGCalSettings();
+		}
 	}
 
-	this.addCalendar = function(id, name, colour, textcolour) {
-		calendarlist.push(new VpCalendar({
-			id: id,
-			summary: name,
-			backgroundColor: colour,
-			foregroundColor: textcolour
-		}));
-	}
-
-	this.register = function(add, remove, update) {
-		fAdd = add;
-		fRemove = remove;
-		fUpdate = update;
-	}
-
-	this.setStartDate = function(vdt) {
-		isoSpan.start = vdt.dt.toISOString();
-	}
-
-	this.setEndDate = function(vdt) {
-		isoSpan.end = vdt.dt.toISOString();
-	}
-
-	this.load = function() {
-		for (cal of calendarlist)
-			cal.loadEvents();
-	}
-
-	this.reload = function() {
-		fRemove();
-		this.load();
-	}
-
-	this.sync = function() {
-		for (cal of calendarlist)
-			cal.syncEvents();
-	}
+	function onload() {
+		$rootScope.$apply("vp.calendarlistload = true");
+	};
 
 	function reqCalendars(reqparams) {
 		gapi.client.request({
@@ -327,9 +264,84 @@ angular.module("vpApp").service("vpEvents", function($window, $timeout, vpConfig
 				reqCalendars(reqparams);
 			}
 
-			$timeout();
+			onload();
 		};
 	}
+
+	this.addPublicCalendar = function(id, name, colour, textcolour) {
+		calendarlist.push(new VpCalendar({
+			id: id,
+			summary: name,
+			backgroundColor: colour,
+			foregroundColor: textcolour
+		}));
+	}
+
+	this.loadPublicCalendars = onload;
+
+	var eventcolours;
+
+	function loadGCalSettings() {
+		gapi.client.request({
+			path: "https://www.googleapis.com/calendar/v3/users/me/settings/format24HourTime",
+			method: "GET",
+			params: {}
+		})
+		.then(rcv, fail);
+
+		gapi.client.request({
+			path: "https://www.googleapis.com/calendar/v3/colors",
+			method: "GET"
+		})
+		.then(rcv, fail);
+
+		function rcv(response) {
+			if (response.result)
+			if (response.result.kind == "calendar#setting")
+			if (response.result.id == "format24HourTime")
+				VpDateTime.time24h = (response.result.value == "true");
+
+			if (response.result)
+			if (response.result.kind == "calendar#colors")
+				eventcolours = response.result.event;
+		};
+	}
+
+	this.register = function(add, remove, update) {
+		fAdd = add;
+		fRemove = remove;
+		fUpdate = update;
+	}
+
+	this.setAPIKey = function(key) {
+		apikey = key;
+	}
+
+	this.setStartDate = function(vdt) {
+		isoSpan.start = vdt.dt.toISOString();
+	}
+
+	this.setEndDate = function(vdt) {
+		isoSpan.end = vdt.dt.toISOString();
+	}
+
+	function loadEvents() {
+		for (cal of calendarlist)
+			cal.loadEvents();
+	}
+	this.loadEvents = loadEvents;
+
+	function reloadEvents() {
+		fRemove();
+		this.loadEvents();
+	}
+	this.reloadEvents = reloadEvents;
+
+	function syncEvents() {
+		for (cal of calendarlist)
+			cal.syncEvents();
+	}
+	this.syncEvents = syncEvents;
 
 	function VpCalendar(item) {
 		var cal = this;
@@ -392,21 +404,19 @@ angular.module("vpApp").service("vpEvents", function($window, $timeout, vpConfig
 			}
 
 			function reqfail(reason) {
-				if (reason.status == 410) {
-					fRemove();
-					load();
-				}
+				if (reason.status == 410)
+					reloadEvents();
 				else
 					fail(reason);
 			};
 		}
 
 		this.loadEvents = function() {
-			reqEvents({timeMin: isoSpan.start, timeMax: isoSpan.end, singleEvents: true});
+			reqEvents({timeMin: isoSpan.start, timeMax: isoSpan.end, singleEvents: true, key: apikey});
 		}
 
 		this.syncEvents = function() {
-			reqEvents({syncToken: synctok, singleEvents: true});
+			reqEvents({syncToken: synctok, singleEvents: true, key: apikey});
 		}
 
 		this.toggle = function() {
@@ -432,8 +442,6 @@ angular.module("vpApp").service("vpEvents", function($window, $timeout, vpConfig
 					cls.checked = true;
 			}
 		}
-
-		this.loadEvents();
 	}
 
 	function VpEvent(cal, item) {
@@ -449,7 +457,9 @@ angular.module("vpApp").service("vpEvents", function($window, $timeout, vpConfig
 		if (cfg.event_background == "evt") {
 			this.colour = cal.colour;
 			if (item.colorId)
-				this.colour = vpConfiguration.gcal.getEventColour(item.colorId);
+			if (eventcolours && eventcolours[item.colorId])
+			if (eventcolours[item.colorId])
+				this.colour = {text: eventcolours[item.colorId].foreground, background: eventcolours[item.colorId].background};
 		}
 
 		if ("dateTime" in item.start)
@@ -494,19 +504,19 @@ angular.module("vpApp").service("vpEvents", function($window, $timeout, vpConfig
 
 //////////////////////////////////////////////////////////////////////
 
-angular.module("vpApp").service("vpAlmanac", function($timeout, vpConfiguration, vpEvents, $window) {
-	var cfg = vpConfiguration.appdata;
-	var view = vpConfiguration.gridview;
+angular.module("vpApp").service("vpDiary", function($rootScope, $timeout, vpGCal, $window) {
+	var cfg = $rootScope.vp.appdata;
+	var view = $rootScope.vp.gridview;
 	var vpmonths = [];
 	var vpdays = [];
 	var ymdFirst;
-	vpEvents.register(addEvent, removeEvent, updateEvents);
+	vpGCal.register(addEvent, removeEvent, updateEvents);
 
 	this.makePage = function(vdt, pagelength) {
 		VpDate.weekends = cfg.weekends.split(',').map(s => parseInt(s));
 		VpDate.localemonth = cfg.month_names.split('-');
 
-		vpEvents.setStartDate(vdt);
+		vpGCal.setStartDate(vdt);
 		ymdFirst = vdt.ymd();
 
 		vpmonths = [];
@@ -517,10 +527,10 @@ angular.module("vpApp").service("vpAlmanac", function($timeout, vpConfiguration,
 			month.index = vpmonths.length;
 			vpmonths.push(month);
 			vdtNext.offsetMonth(1);
-			vpEvents.setEndDate(vdtNext);
+			vpGCal.setEndDate(vdtNext);
 		}
 
-		vpEvents.load();
+		vpGCal.loadEvents();
 	}
 
 	this.getPage = function() {
@@ -797,14 +807,13 @@ angular.module("vpApp").service("vpAlmanac", function($timeout, vpConfiguration,
 
 
 
-
 //////////////////////////////////////////////////////////////////////
 
-angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpAlmanac, vpEvents, $window, $timeout) {
-	var cfg = vpConfiguration.appdata;
-	var view = vpConfiguration.gridview;
-
+angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpDiary, vpGCal, $window, $timeout, $location, $sce) {
 	function fCtl($scope) {
+		var cfg = $scope.vp.appdata;
+		var view = $scope.vp.gridview;
+
 		var box = document.getElementById("vpbox");
 		var scrollbox = document.getElementById("vpscrollbox");
 		var vdt;
@@ -812,10 +821,17 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpAlmanac,
 		var pagelength;
 		var vislength;
 
-		$scope.vpgrid.navbar = {};
-		$scope.vpgrid.calbar = {};
+		$scope.$watch("vp.calendarlistload", function() {
+			if ($scope.vp.calendarlistload)
+				start();
+		});
 
 		showGrid(false);
+
+		function start() {
+			initUI();
+			updateUI();
+		}
 
 		function initUI() {
 			vdt = new VpDateMonth;
@@ -840,8 +856,8 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpAlmanac,
 			var vdtPage = new VpDate(vdt);
 			vdtPage.offsetMonth(-buffer);
 
-			vpAlmanac.makePage(vdtPage, pagelength);
-			$scope.vpgrid.page = vpAlmanac.getPage();
+			vpDiary.makePage(vdtPage, pagelength);
+			$scope.vpgrid.page = vpDiary.getPage();
 			$scope.vpgrid.gridareas = getGridAreas($scope.vpgrid.page);
 			$scope.vpgrid.view = view;
 			$scope.vpgrid.fontscale = cfg.font_scale_pc/100;
@@ -852,8 +868,7 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpAlmanac,
 			$scope.vpgrid.singledaytext = cfg.text_on_singleday_events;
 			$scope.vpgrid.multidaytext = cfg.text_on_multiday_events;
 			$scope.vpgrid.multidayscale = cfg.scale_of_multiday_events/100;
-			$scope.vpgrid.navbar.year = vdt.dt.getFullYear();
-			$scope.vpgrid.calbar.calendars = vpEvents.calendarlist;
+			$scope.vpgrid.year = vdt.dt.getFullYear();
 
 			$scope.vpgrid.cls = {};
 			if (!cfg.same_row_height)
@@ -909,7 +924,7 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpAlmanac,
 				var monthsize = view.column ? hdr.offsetWidth : hdr.offsetHeight;
 
 				if (monthpos + (monthsize / 2) > scrollpos)
-					info.months.push(vpAlmanac.getPage()[i]);
+					info.months.push(vpDiary.getPage()[i]);
 
 				if (info.months.length == 1)
 					info.index = i;
@@ -921,15 +936,8 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpAlmanac,
 			return info;
 		}
 
-		this.start = function() {
-			vpEvents.loadCalendarList();
-			initUI();
-			updateUI();
-		}
-
 		this.reset = function() {
-			initUI();
-			updateUI();
+			start();
 		}
 
 		this.onclickColumn = function() {
@@ -974,9 +982,9 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpAlmanac,
 
 		this.onclickSync = function(evt) {
 			if (evt.ctrlKey)
-				vpEvents.reload();
+				vpGCal.reloadEvents();
 			else
-				vpEvents.sync();
+				vpGCal.syncEvents();
 
 			box.focus();
 		}
@@ -1008,7 +1016,7 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpAlmanac,
 			var year_pt = navdiv.offsetWidth / 2;
 			var click_off = evt.clientX - year_pt;
 			var day_off = Math.round(click_off / day_px);
-			var click_month = new Date($scope.vpgrid.navbar.year, 6, day_off);
+			var click_month = new Date($scope.vpgrid.year, 6, day_off);
 
 			showGrid(false);
 			$timeout(function() {
@@ -1039,11 +1047,16 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpAlmanac,
 			//scope.vpgrid.init();
 	}
 
+	var url = "https://visual-planner.github.io/vpgrid.htm";
+	if ($location.$$host == "localhost" && $location.$$port == 8080)
+		url = "http://localhost:8080/visual-planner.github.io/vpgrid.htm";
+
 	return {
 		controller: fCtl,
 		controllerAs: "vpgrid",
 		link: fLink,
-		templateUrl: "vpgrid.htm",
+		templateUrl: $sce.trustAsResourceUrl(url),
+		//replace: true,
 		restrict: 'E'
 	};
 });

@@ -27,9 +27,6 @@ angular.module('vpPrintApp', [])
 		return {
 			controller: function($scope) {
 				$scope.vpgrid = $window.opener.vpprintgrid;
-				$scope.vpgrid.navbar.show = false;
-				$scope.vpgrid.calbar.show = false;
-				$scope.vpgrid.redboxtoday = false;
 				$scope.vpgrid.view.darkmode = {checked: false};
 				$scope.vpgrid.past_opacity = 1;
 				$scope.vpgrid.scroll_size = 100;

@@ -1,5 +1,6 @@
 <style>
 #vpbox {
+	width: inherit;
 	height: inherit;
 	border: none;
 	outline: none;
@@ -140,6 +141,7 @@
 
 <span ng-if="vpgrid.view.darkmode.checked">
 	<style>
+	#vpbox {background-color: hsl(0,0%,25%); color: hsl(0,0%,80%);}
 	#vpnavbar {background-color: hsl(0,0%,12%); color: hsl(0,0%,60%);}
 	#vpscrollbox {background-color: hsl(0,0%,16%);}
 	.vpday.weekend {background-color: hsl(0,0%,25%);}
@@ -151,7 +153,7 @@
 	</style>
 </span>
 
-<span ng-if="vpgrid.navbar.show">
+<span ng-if="vp.gridoptions.shownavbar">
 	<style>
 	#vpbox {
 		--navbarheight: 1.2em;
@@ -159,7 +161,7 @@
 	</style>
 </span>
 
-<span ng-if="vpgrid.calbar.show">
+<span ng-if="vp.gridoptions.showcalbar">
 	<style>
 	#vpbox {
 		--calbarheight: 2em;
@@ -167,7 +169,7 @@
 	</style>
 </span>
 
-<span ng-if="vpgrid.redboxtoday">
+<span ng-if="vp.gridoptions.redboxtoday">
 	<style>
 	.today .vpnum {
 		font-weight: bold;
@@ -314,9 +316,9 @@
 </span>
 
 <div id="vpbox">
-	<div id="vpnavbar" ng-if="vpgrid.navbar.show" title="View" ng-click="vpgrid.onclickNavbar($event)">
+	<div id="vpnavbar" ng-if="vp.gridoptions.shownavbar" title="View" ng-click="vpgrid.onclickNavbar($event)">
 		<div class="panel">
-			<div>&#9679;</div><div>{{vpgrid.navbar.year-2}}</div><div>&#9679;</div><div>{{vpgrid.navbar.year-1}}</div><div>&#9679;</div><div>{{vpgrid.navbar.year}}</div><div>&#9679;</div><div>{{vpgrid.navbar.year+1}}</div><div>&#9679;</div><div>{{vpgrid.navbar.year+2}}</div><div>&#9679;</div>
+			<div>&#9679;</div><div>{{vpgrid.year-2}}</div><div>&#9679;</div><div>{{vpgrid.year-1}}</div><div>&#9679;</div><div>{{vpgrid.year}}</div><div>&#9679;</div><div>{{vpgrid.year+1}}</div><div>&#9679;</div><div>{{vpgrid.year+2}}</div><div>&#9679;</div>
 		</div>
 	</div>
 	<div id="vpscrollbox" tabindex="0" ng-keydown="vpgrid.onkeydown($event)">
@@ -340,8 +342,8 @@
 			</div>
 		</div>
 	</div>
-	<div id="vpcalbar" ng-if="vpgrid.calbar.show">
-		<div class="vpcalbtn" ng-repeat="cal in vpgrid.calbar.calendars | orderBy: 'name'" ng-class="cal.cls" ng-click="cal.toggle()">
+	<div id="vpcalbar" ng-if="vp.gridoptions.showcalbar">
+		<div class="vpcalbtn" ng-repeat="cal in vp.calendarlist | orderBy: 'name'" ng-class="cal.cls" ng-click="cal.toggle()">
 			<span class="vpcalmarker" style="background-color: {{cal.colour.background}}"></span>
 			<span>{{cal.name}}</span>
 		</div>
