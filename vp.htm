@@ -245,7 +245,7 @@ angular.module("vpApp").controller("vpController", function($scope, vpConfigurat
 	this.scroll_buffer_options = {"No scrolling": 0, "3": 3, "6": 6, "12": 12};
 	this.event_background_options = {"Calendar": "cal", "Event": "evt", "White": "white", "Transparent": ""};
 	this.show = {planner: true};
-	$scope.vp.gridoptions = {shownavbar: true, showcalbar: true, redboxtoday: true};
+	$scope.vp.gridoptions = {shownavbar: true, showcalbar: true, redboxtoday: true, enablelinks: true};
 
 	gapi.load('client', function(){gapi.client.init({}).then(vpConfiguration.Load);});
 
