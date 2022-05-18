@@ -8,8 +8,10 @@ angular.module("vpApp").service("vpConfiguration", function($window, $location, 
 	$rootScope.vp.apply = onload;
 
 	this.Load = function() {
-		loadPermissions();
+		loadPermissions_then(loadAppData);
 	}
+
+	this.Authorise_then = loadPermissions_then;
 
 	function onload() {
 		$rootScope.$apply("vp.configload = true");
@@ -18,7 +20,7 @@ angular.module("vpApp").service("vpConfiguration", function($window, $location, 
 	var permissions = {};
 	$rootScope.vp.permissions = permissions;
 
-	function loadPermissions() {
+	function loadPermissions_then(do_this) {
 		google.accounts.oauth2.initTokenClient({
 			client_id: $location.$$hash ? $location.$$hash : "186424320143-vb1h85auvvpnojvmeg9gi6lv9aan4ggi.apps.googleusercontent.com",
 			scope: "https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/drive.appdata",
@@ -33,7 +35,7 @@ angular.module("vpApp").service("vpConfiguration", function($window, $location, 
 			if (google.accounts.oauth2.hasGrantedAllScopes(gapi.client.getToken(), "https://www.googleapis.com/auth/drive.appdata"))
 				permissions.drive_appdata = true;
 
-			loadAppData();
+			do_this();
 		}
 	}
 
@@ -219,9 +221,8 @@ angular.module("vpApp").service("vpConfiguration", function($window, $location, 
 
 //////////////////////////////////////////////////////////////////////
 
-angular.module("vpApp").service("vpGCal", function($rootScope, $window) {
+angular.module("vpApp").service("vpGCal", function(vpConfiguration, $rootScope, $window) {
 	var cfg = $rootScope.vp.appdata;
-	var apikey = "";
 	var isoSpan = {};
 	var fAdd = function(){};
 	var fRemove = function(){};
@@ -311,10 +312,6 @@ angular.module("vpApp").service("vpGCal", function($rootScope, $window) {
 		fUpdate = update;
 	}
 
-	this.setAPIKey = function(key) {
-		apikey = key;
-	}
-
 	this.setStartDate = function(vdt) {
 		isoSpan.start = vdt.dt.toISOString();
 	}
@@ -331,7 +328,7 @@ angular.module("vpApp").service("vpGCal", function($rootScope, $window) {
 
 	function reloadEvents() {
 		fRemove();
-		this.loadEvents();
+		loadEvents();
 	}
 	this.reloadEvents = reloadEvents;
 
@@ -402,7 +399,9 @@ angular.module("vpApp").service("vpGCal", function($rootScope, $window) {
 			}
 
 			function reqfail(reason) {
-				if (reason.status == 410)
+				if (reason.status == 401)
+					vpConfiguration.Authorise_then(reloadEvents);
+				else if (reason.status == 410)
 					reloadEvents();
 				else
 					fail(reason);
@@ -410,11 +409,11 @@ angular.module("vpApp").service("vpGCal", function($rootScope, $window) {
 		}
 
 		this.loadEvents = function() {
-			reqEvents({timeMin: isoSpan.start, timeMax: isoSpan.end, singleEvents: true, key: apikey});
+			reqEvents({timeMin: isoSpan.start, timeMax: isoSpan.end, singleEvents: true});
 		}
 
 		this.syncEvents = function() {
-			reqEvents({syncToken: synctok, singleEvents: true, key: apikey});
+			reqEvents({syncToken: synctok, singleEvents: true});
 		}
 
 		this.toggle = function() {
@@ -982,7 +981,7 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpDiary, $
 			box.focus();
 		}
 
-		this.onclickSync = function(evt) {
+		this.onclickSync = function() {
 			vpDiary.sync();
 			box.focus();
 		}

@@ -247,7 +247,7 @@ angular.module("vpApp").controller("vpController", function($scope, vpConfigurat
 	this.show = {planner: true};
 	$scope.vp.gridoptions = {shownavbar: true, showcalbar: true, redboxtoday: true, enablelinks: true};
 
-	gapi.load('client', function(){gapi.client.init({}).then(vpConfiguration.Load);});
+	gapi.load('client', vpConfiguration.Load);
 
 	this.onclickSettings = function() {
 		this.form.$setPristine(true);
