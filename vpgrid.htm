@@ -139,7 +139,7 @@
 .vpcalbtn.checked {color: hsl(0,0%,40%);}
 </style>
 
-<span ng-if="vpgrid.view.darkmode.checked">
+<span ng-if="vp.gridview.darkmode.checked">
 	<style>
 	#vpbox {background-color: hsl(0,0%,25%); color: hsl(0,0%,80%);}
 	#vpnavbar {background-color: hsl(0,0%,12%); color: hsl(0,0%,60%);}
@@ -179,7 +179,7 @@
 	</style>
 </span>
 
-<span ng-if="vpgrid.view.column">
+<span ng-if="vp.gridview.column">
 	<style>
 	#vpgrid {
 		width: {{vpgrid.scroll_size}}%;
@@ -230,7 +230,7 @@
 	}
 	</style>
 
-	<span ng-if="vpgrid.view.collapse">
+	<span ng-if="vp.gridview.collapse">
 		<style>
 		#vpgrid {
 			height: 100%;
@@ -247,7 +247,7 @@
 		</style>
 	</span>
 
-	<span ng-if="vpgrid.view.expand">
+	<span ng-if="vp.gridview.expand">
 		<style>
 		#vpgrid {
 			grid-auto-columns: 1fr;
@@ -259,7 +259,7 @@
 	</span>
 </span>
 
-<span ng-if="vpgrid.view.list">
+<span ng-if="vp.gridview.list">
 	<style>
 	#vpgrid {
 		width: 100%;
@@ -306,7 +306,7 @@
 	}
 	</style>
 
-	<span ng-if="vpgrid.view.collapse">
+	<span ng-if="vp.gridview.collapse">
 		<style>
 		.vplabel {
 			white-space: nowrap;
@@ -321,7 +321,7 @@
 			<div>&#9679;</div><div>{{vpgrid.year-2}}</div><div>&#9679;</div><div>{{vpgrid.year-1}}</div><div>&#9679;</div><div>{{vpgrid.year}}</div><div>&#9679;</div><div>{{vpgrid.year+1}}</div><div>&#9679;</div><div>{{vpgrid.year+2}}</div><div>&#9679;</div>
 		</div>
 	</div>
-	<div id="vpscrollbox" tabindex="0" ng-keydown="vpgrid.onkeydown($event)">
+	<div id="vpscrollbox" ng-class="vpgrid.sbox_cls" tabindex="0" ng-keydown="vpgrid.onkeydown($event)">
 		<div id="vpgrid" ng-class="vpgrid.cls">
 			<div ng-repeat="month in vpgrid.page" id="{{month.id}}" class="vpmonth" ng-class="month.cls">
 				<div class="vphdr vplink" ng-click="month.onclickHdr()">{{month.hdr}}</div>

@@ -5,6 +5,7 @@ angular.module("vpApp", []);
 
 angular.module("vpApp").service("vpConfiguration", function($window, $location, $rootScope) {
 	$rootScope.vp = {};
+	$rootScope.vp.apply = onload;
 
 	this.Load = function() {
 		loadPermissions();
@@ -241,10 +242,6 @@ angular.module("vpApp").service("vpGCal", function($rootScope, $window) {
 		}
 	}
 
-	function onload() {
-		$rootScope.$apply("vp.calendarlistload = true");
-	};
-
 	function reqCalendars(reqparams) {
 		gapi.client.request({
 			path: "https://www.googleapis.com/calendar/v3/users/me/calendarList",
@@ -264,20 +261,21 @@ angular.module("vpApp").service("vpGCal", function($rootScope, $window) {
 				reqCalendars(reqparams);
 			}
 
-			onload();
+			$rootScope.$apply(loadEvents);
 		};
 	}
 
 	this.addPublicCalendar = function(id, name, colour, textcolour) {
-		calendarlist.push(new VpCalendar({
+		var cal = new VpCalendar({
 			id: id,
 			summary: name,
 			backgroundColor: colour,
 			foregroundColor: textcolour
-		}));
-	}
+		});
 
-	this.loadPublicCalendars = onload;
+		calendarlist.push(cal);
+		cal.loadEvents();
+	}
 
 	var eventcolours;
 
@@ -539,6 +537,10 @@ angular.module("vpApp").service("vpDiary", function($rootScope, $timeout, vpGCal
 
 	this.getMonth = function(i) {
 		return vpmonths[i];
+	}
+
+	this.sync = function() {
+		vpGCal.syncEvents();
 	}
 
 	var tmo=null;
@@ -809,7 +811,7 @@ angular.module("vpApp").service("vpDiary", function($rootScope, $timeout, vpGCal
 
 //////////////////////////////////////////////////////////////////////
 
-angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpDiary, vpGCal, $window, $timeout, $location, $sce) {
+angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpDiary, $window, $timeout, $location, $sce) {
 	function fCtl($scope) {
 		var cfg = $scope.vp.appdata;
 		var view = $scope.vp.gridview;
@@ -821,23 +823,35 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpDiary, v
 		var pagelength;
 		var vislength;
 
-		$scope.$watch("vp.calendarlistload", function() {
-			if ($scope.vp.calendarlistload)
+		hideGrid(true);
+
+		$scope.$watch("vp.configload", function() {
+			if ($scope.vp.configload)
 				start();
 		});
 
-		showGrid(false);
-
 		function start() {
-			initUI();
-			updateUI();
-		}
-
-		function initUI() {
-			vdt = new VpDateMonth;
 			buffer = cfg.scroll_buffer;
 			vislength = cfg.month_count;
 			pagelength = buffer + vislength + buffer;
+
+			$scope.vpgrid.fontscale = cfg.font_scale_pc/100;
+			$scope.vpgrid.past_opacity = cfg.past_opacity;
+			$scope.vpgrid.scroll_size = (pagelength / vislength)*100;
+			$scope.vpgrid.scroll_size_portrait = $scope.vpgrid.scroll_size*2;
+			$scope.vpgrid.multi_day_opacity = cfg.multi_day_opacity;
+			$scope.vpgrid.singledaytext = cfg.text_on_singleday_events;
+			$scope.vpgrid.multidaytext = cfg.text_on_multiday_events;
+			$scope.vpgrid.multidayscale = cfg.scale_of_multiday_events/100;
+			$scope.vpgrid.cls = cfg.same_row_height ? {} : {flexrow: true};
+			$scope.vpgrid.sbox_cls = cfg.hide_scrollbars ? {hidescroll: true} : {};
+
+			initDate();
+			loadPage();
+		}
+
+		function initDate() {
+			vdt = new VpDateMonth;
 
 			if (cfg.auto_scroll) {
 				vdt.offsetMonth(cfg.auto_scroll_offset);
@@ -847,32 +861,16 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpDiary, v
 				if (off > 0) off -= 12;
 				vdt.offsetMonth(off);
 			}
-
-			if (cfg.hide_scrollbars)
-				scrollbox.classList.add("hidescroll");
 		}
 
-		function updateUI() {
+		function loadPage() {
 			var vdtPage = new VpDate(vdt);
 			vdtPage.offsetMonth(-buffer);
 
 			vpDiary.makePage(vdtPage, pagelength);
 			$scope.vpgrid.page = vpDiary.getPage();
 			$scope.vpgrid.gridareas = getGridAreas($scope.vpgrid.page);
-			$scope.vpgrid.view = view;
-			$scope.vpgrid.fontscale = cfg.font_scale_pc/100;
-			$scope.vpgrid.past_opacity = cfg.past_opacity;
-			$scope.vpgrid.scroll_size = (pagelength / vislength)*100;
-			$scope.vpgrid.scroll_size_portrait = $scope.vpgrid.scroll_size*2;
-			$scope.vpgrid.multi_day_opacity = cfg.multi_day_opacity;
-			$scope.vpgrid.singledaytext = cfg.text_on_singleday_events;
-			$scope.vpgrid.multidaytext = cfg.text_on_multiday_events;
-			$scope.vpgrid.multidayscale = cfg.scale_of_multiday_events/100;
 			$scope.vpgrid.year = vdt.dt.getFullYear();
-
-			$scope.vpgrid.cls = {};
-			if (!cfg.same_row_height)
-				$scope.vpgrid.cls.flexrow = true;
 
 			$timeout(function() {
 				var monthdivs = box.querySelectorAll(".vpmonth");
@@ -883,18 +881,22 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpDiary, v
 				if (view.list)
 					scrollbox.scrollTo(0, monthdivs[buffer].firstElementChild.offsetTop);
 
-				showGrid(true);
+				showGrid();
 			});
 		}
 
-		function showGrid(show) {
-			if (show) {
-				box.style.visibility = "";
-				box.focus();
-			}
-			else {
+		function hideGrid(hide_all) {
+			if (hide_all)
 				box.style.visibility = "hidden";
-			}
+
+			scrollbox.style.visibility = "hidden";
+		}
+
+		function showGrid() {
+			box.style.visibility = "";
+			scrollbox.style.visibility = "";
+
+			box.focus();
 		}
 
 		function getGridAreas(page) {
@@ -944,12 +946,12 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpDiary, v
 			if (view.column)
 				return;
 
-			showGrid(false);
+			hideGrid();
 			$timeout(function() {
 				vpConfiguration.setGridView({column: true});
 
-				initUI();
-				updateUI();
+				initDate();
+				loadPage();
 			});
 		}
 
@@ -957,12 +959,12 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpDiary, v
 			if (view.list)
 				return;
 
-			showGrid(false);
+			hideGrid();
 			$timeout(function() {
 				vpConfiguration.setGridView({list: true});
 
-				initUI();
-				updateUI();
+				initDate();
+				loadPage();
 			});
 		}
 
@@ -981,31 +983,29 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpDiary, v
 		}
 
 		this.onclickSync = function(evt) {
-			if (evt.ctrlKey)
-				vpGCal.reloadEvents();
-			else
-				vpGCal.syncEvents();
-
+			vpDiary.sync();
 			box.focus();
 		}
 
 		this.onclickContinue = function() {
-			showGrid(false);
+			hideGrid();
 			$timeout(function() {
 				var visinfo = getVisInfo();
 				vdt.offsetMonth(visinfo.index - buffer);
-				updateUI();
+				loadPage();
 			});
 		}
 
 		this.onclickPrint = function() {
 			var visinfo = getVisInfo();
 
-			$window.vpprintgrid = {};
-			angular.copy($scope.vpgrid, $window.vpprintgrid);
+			$window.vpprint = {gridoptions: {}, gridview: {}, grid: {}};
+			angular.copy($scope.vp.gridoptions, $window.vpprint.gridoptions);
+			angular.copy($scope.vp.gridview, $window.vpprint.gridview);
+			angular.copy($scope.vpgrid, $window.vpprint.grid);
 
-			$window.vpprintgrid.page = visinfo.months;
-			$window.vpprintgrid.gridareas = getGridAreas(visinfo.months);
+			$window.vpprint.grid.page = visinfo.months;
+			$window.vpprint.grid.gridareas = getGridAreas(visinfo.months);
 
 			$window.open("vpprint.htm");
 		}
@@ -1018,10 +1018,10 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpDiary, v
 			var day_off = Math.round(click_off / day_px);
 			var click_month = new Date($scope.vpgrid.year, 6, day_off);
 
-			showGrid(false);
+			hideGrid();
 			$timeout(function() {
 				vdt = new VpDateMonth(click_month.getFullYear(), click_month.getMonth()+1);
-				updateUI();
+				loadPage();
 			});
 		}
 
