@@ -5,7 +5,6 @@ angular.module("vpApp", []);
 
 angular.module("vpApp").service("vpConfiguration", function($window, $location, $rootScope) {
 	$rootScope.vp = {};
-	$rootScope.vp.apply = onload;
 
 	this.Load = function() {
 		loadPermissions_then(loadAppData);
@@ -234,7 +233,6 @@ angular.module("vpApp").service("vpGCal", function(vpConfiguration, $rootScope, 
 	});
 
 	var calendarlist = [];
-	$rootScope.vp.calendarlist = calendarlist;
 
 	function loadCalendarList() {
 		if ($rootScope.vp.permissions.view_calendars) {
@@ -262,8 +260,14 @@ angular.module("vpApp").service("vpGCal", function(vpConfiguration, $rootScope, 
 				reqCalendars(reqparams);
 			}
 
-			$rootScope.$apply(loadEvents);
+			onload();
 		};
+	}
+
+	function onload() {
+		$rootScope.$apply(function(){
+			$rootScope.vp.calendarlist = calendarlist;
+		});
 	}
 
 	this.addPublicCalendar = function(id, name, colour, textcolour) {
@@ -275,8 +279,9 @@ angular.module("vpApp").service("vpGCal", function(vpConfiguration, $rootScope, 
 		});
 
 		calendarlist.push(cal);
-		cal.loadEvents();
 	}
+
+	this.loadPublicCalendarEvents = onload;
 
 	var eventcolours;
 
@@ -321,16 +326,11 @@ angular.module("vpApp").service("vpGCal", function(vpConfiguration, $rootScope, 
 	}
 
 	function loadEvents() {
+		fRemove();
 		for (cal of calendarlist)
 			cal.loadEvents();
 	}
 	this.loadEvents = loadEvents;
-
-	function reloadEvents() {
-		fRemove();
-		loadEvents();
-	}
-	this.reloadEvents = reloadEvents;
 
 	function syncEvents() {
 		for (cal of calendarlist)
@@ -400,9 +400,9 @@ angular.module("vpApp").service("vpGCal", function(vpConfiguration, $rootScope, 
 
 			function reqfail(reason) {
 				if (reason.status == 401)
-					vpConfiguration.Authorise_then(reloadEvents);
+					vpConfiguration.Authorise_then(loadEvents);
 				else if (reason.status == 410)
-					reloadEvents();
+					loadEvents();
 				else
 					fail(reason);
 			};
@@ -824,8 +824,8 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpDiary, $
 
 		hideGrid(true);
 
-		$scope.$watch("vp.configload", function() {
-			if ($scope.vp.configload)
+		$scope.$watch("vp.calendarlist", function() {
+			if ($scope.vp.calendarlist)
 				start();
 		});
 
