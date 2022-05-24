@@ -13,7 +13,7 @@ angular.module("vpApp").service("vpConfiguration", function($window, $location, 
 	this.Authorise_then = loadPermissions_then;
 
 	function onload() {
-		$rootScope.$apply("vp.configload = true");
+		$rootScope.$broadcast("config:load");
 	};
 
 	var permissions = {};
@@ -226,19 +226,21 @@ angular.module("vpApp").service("vpGCal", function(vpConfiguration, $rootScope, 
 	var fAdd = function(){};
 	var fRemove = function(){};
 	var fUpdate = function(){};
-
-	$rootScope.$watch("vp.configload", function() {
-		if ($rootScope.vp.configload)
-			loadCalendarList();
-	});
-
 	var calendarlist = [];
 
-	function loadCalendarList() {
+	$rootScope.$on("config:load", function() {
 		if ($rootScope.vp.permissions.view_calendars) {
 			reqCalendars({});
 			loadGCalSettings();
 		}
+		else
+			onload();
+	});
+
+	function onload() {
+		$rootScope.$apply(function(){
+			$rootScope.vp.calendarlist = calendarlist;
+		});
 	}
 
 	function reqCalendars(reqparams) {
@@ -262,12 +264,6 @@ angular.module("vpApp").service("vpGCal", function(vpConfiguration, $rootScope, 
 
 			onload();
 		};
-	}
-
-	function onload() {
-		$rootScope.$apply(function(){
-			$rootScope.vp.calendarlist = calendarlist;
-		});
 	}
 
 	this.addPublicCalendar = function(id, name, colour, textcolour) {
