@@ -226,6 +226,7 @@ angular.module("vpApp").service("vpGCal", function(vpConfiguration, $rootScope, 
 	var fAdd = function(){};
 	var fRemove = function(){};
 	var fUpdate = function(){};
+	var reqfailthen = 0;
 	var calendarlist = [];
 
 	$rootScope.$on("config:load", function() {
@@ -321,18 +322,17 @@ angular.module("vpApp").service("vpGCal", function(vpConfiguration, $rootScope, 
 		isoSpan.end = vdt.dt.toISOString();
 	}
 
-	function loadEvents() {
+	function loadAllCalEvents() {
 		fRemove();
 		for (cal of calendarlist)
 			cal.loadEvents();
 	}
-	this.loadEvents = loadEvents;
+	this.loadAllCalEvents = loadAllCalEvents;
 
-	function syncEvents() {
+	this.syncAllCalEvents = function() {
 		for (cal of calendarlist)
 			cal.syncEvents();
 	}
-	this.syncEvents = syncEvents;
 
 	function VpCalendar(item) {
 		var cal = this;
@@ -395,10 +395,15 @@ angular.module("vpApp").service("vpGCal", function(vpConfiguration, $rootScope, 
 			}
 
 			function reqfail(reason) {
-				if (reason.status == 401)
-					vpConfiguration.Authorise_then(loadEvents);
-				else if (reason.status == 410)
-					loadEvents();
+				if ((Date.now() - reqfailthen) < 3000)
+					return;
+
+				reqfailthen = Date.now();
+
+				if (reason.status == 401)  // auth expired
+					vpConfiguration.Authorise_then(loadAllCalEvents);
+				else if (reason.status == 410)  // sync expired
+					loadAllCalEvents();
 				else
 					fail(reason);
 			};
@@ -523,7 +528,7 @@ angular.module("vpApp").service("vpDiary", function($rootScope, $timeout, vpGCal
 			vpGCal.setEndDate(vdtNext);
 		}
 
-		vpGCal.loadEvents();
+		vpGCal.loadAllCalEvents();
 	}
 
 	this.getPage = function() {
@@ -535,7 +540,7 @@ angular.module("vpApp").service("vpDiary", function($rootScope, $timeout, vpGCal
 	}
 
 	this.sync = function() {
-		vpGCal.syncEvents();
+		vpGCal.syncAllCalEvents();
 	}
 
 	var tmo=null;
