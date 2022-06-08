@@ -1040,6 +1040,18 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpDiary, $
 
 			evt.preventDefault();
 		}
+
+		scrollbox.onwheel = function(evt) {
+			if (evt.ctrlKey || evt.shiftKey || evt.altKey || evt.metaKey)
+				return;
+
+			if (cfg.hide_scrollbars) {
+				var colwidth = (scrollbox.offsetWidth / cfg.month_count);
+				scrollbox.scrollBy(evt.deltaY > 0 ? colwidth : -colwidth, 0);
+				evt.preventDefault = true;
+				return false;
+			}
+		}
 	}
 
 	function fLink(scope, element, attrs) {
