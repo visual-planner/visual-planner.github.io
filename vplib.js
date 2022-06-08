@@ -1046,8 +1046,16 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpDiary, $
 				return;
 
 			if (cfg.hide_scrollbars) {
-				var colwidth = (scrollbox.offsetWidth / cfg.month_count);
-				scrollbox.scrollBy(evt.deltaY > 0 ? colwidth : -colwidth, 0);
+				if (view.column) {
+					var colwidth = (scrollbox.offsetWidth / cfg.month_count);
+					scrollbox.scrollBy(evt.deltaY > 0 ? colwidth : -colwidth, 0);
+				}
+
+				if (view.list) {
+					var colheight = (scrollbox.offsetHeight / cfg.month_count);
+					scrollbox.scrollBy(0, evt.deltaY > 0 ? colheight : -colheight);
+				}
+
 				evt.preventDefault = true;
 				return false;
 			}
