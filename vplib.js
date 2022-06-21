@@ -445,7 +445,9 @@ angular.module("vpApp").service("vpGCal", function(vpConfiguration, $rootScope, 
 	function VpEvent(cal, item) {
 		this.id = item.id;
 		this.cal = cal;
+		this.location = item.location;
 		this.htmlLink = item.htmlLink;
+		this.title = cal.name + " | ";
 
 		this.colour = {};
 		if (cfg.event_background == "cal")
@@ -470,7 +472,7 @@ angular.module("vpApp").service("vpGCal", function(vpConfiguration, $rootScope, 
 
 			this.start = vdttStart.ymd();
 			this.duration = VpDate.DaySpan(vdttStart.ymd(), vdttEnd.ymd()) + 1;
-			this.title = vdttStart.TimeTitle() + " " + item.summary;
+			this.desc = vdttStart.TimeTitle() + " ";
 			this.timestamp = vdttStart.DayMinutes();
 		}
 		else
@@ -478,9 +480,17 @@ angular.module("vpApp").service("vpGCal", function(vpConfiguration, $rootScope, 
 			this.timed = false;
 			this.start = item.start.date;
 			this.duration = VpDate.DaySpan(item.start.date, item.end.date);
-			this.title = item.summary;
+			this.desc = "";
 			this.timestamp = -1;
 		}
+
+		if (item.summary)
+			this.desc += item.summary;
+
+		this.title += this.desc;
+
+		if (item.location)
+			this.title += "\n" + item.location;
 
 		this.edit = function() {
 			$window.open(this.htmlLink.replace("event?eid=", "r/eventedit/"));

@@ -84,6 +84,12 @@
 	opacity: initial;
 	z-index: 1;
 }
+.vplabel .material-icons {
+	font-size: 1em;
+	padding: 0 0 0.1em 0;
+	margin: 0;
+	vertical-align: text-bottom;
+}
 #vpnavbar {
 	height: var(--navbarheight);
 	user-select: none;
@@ -235,6 +241,9 @@
 		border-bottom-right-radius: 1em;
 		border-bottom-left-radius: 1em;
 	}
+	.vplabel.multiday .material-icons {
+		padding: 0.5em 0 0.2em 0;
+	}
 	</style>
 
 	<span ng-if="vp.gridview.collapse">
@@ -311,6 +320,9 @@
 		border-top-right-radius: 1em;
 		border-bottom-right-radius: 1em;
 	}
+	.vplabel.multiday .material-icons {
+		padding: 0 0.2em 0 0.5em;
+	}
 	</style>
 
 	<span ng-if="vp.gridview.collapse">
@@ -335,15 +347,17 @@
 				<div ng-repeat="day in month.days" class="vpday" ng-class="day.cls">
 					<div class="vpnum vplink" ng-click="day.onclickNum($event)">{{day.num}}</div>
 					<div class="vpdaylabels" ng-if="day.labels" ng-style="day.labelboxstyle">
-						<div ng-repeat="label in day.labels | orderBy: ['evt.timestamp', 'evt.title']" class="vplabel vplink" title="{{label.evt.cal.name}} - {{label.evt.title}}" ng-style="label.style" ng-click="label.evt.edit()">
-							<span class="vplabeltext" ng-if="vpgrid.singledaytext">{{label.evt.title}}</span>
+						<div ng-repeat="label in day.labels | orderBy: ['evt.timestamp', 'evt.title']" class="vplabel vplink" title="{{label.evt.title}}" ng-style="label.style" ng-click="label.evt.edit()">
+							<span class="vplabeltext" ng-if="vpgrid.singledaytext">{{label.evt.desc}}</span>
+							<span ng-if="label.evt.location"><span class="material-icons">add_location</span>{{label.evt.location}}</span>
 						</div>
 					</div>
 				</div>
 				<div class="vpftr"></div>
 				<div ng-repeat="label in month.labels" class="vpmultilabelbox" ng-style="label.multiboxstyle">
-					<div class="vplabel vplink multiday" title="{{label.evt.cal.name}} - {{label.evt.title}}" ng-class="label.cls" ng-style="label.style" ng-click="label.evt.edit()">
-						<span class="vplabeltext" ng-if="vpgrid.multidaytext">{{label.evt.title}}</span>
+					<div class="vplabel vplink multiday" title="{{label.evt.title}}" ng-class="label.cls" ng-style="label.style" ng-click="label.evt.edit()">
+						<span class="vplabeltext" ng-if="vpgrid.multidaytext">{{label.evt.desc}}</span>
+						<span ng-if="label.evt.location"><span class="material-icons">add_location</span>{{label.evt.location}}</span>
 					</div>
 				</div>
 			</div>
