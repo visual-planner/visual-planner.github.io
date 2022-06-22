@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto" type="text/css"/>
+<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto|Material+Icons">
 <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.7/angular.min.js"></script>
 <link href="vp.png" rel="icon">
 <style>
@@ -16,6 +16,15 @@ body {
 #printgrid {
 	height: 100vh;
 }
+#vpcalbar.printcalbar {
+	background-color: unset;
+}
+.printcalbar {
+	pointer-events: none;
+}
+.printcalbar .checked {
+	display: none;
+}
 </style>
 <title>Print</title>
 </head>
@@ -25,14 +34,21 @@ body {
 angular.module('vpPrintApp', [])
 	.directive("vpPrintGrid", function($window) {
 		return {
-			controller: function($scope) {
-				$scope.vp = {gridoptions: {}, gridview: $window.opener.vpprint.gridview};
+			controller: function($scope, $timeout) {
+				$scope.vp = {};
+				$scope.vp.calendarlist = $window.opener.vpprint.calendarlist;
+				$scope.vp.gridview = $window.opener.vpprint.gridview;
 				$scope.vp.gridview.darkmode = {checked: false};
+				$scope.vp.gridoptions = {showcalbar: true};
 				$scope.vpgrid = $window.opener.vpprint.grid;
 				$scope.vpgrid.past_opacity = 1;
 				$scope.vpgrid.scroll_size = 100;
 				$scope.vpgrid.scroll_size_portrait = 100;
 				$scope.vpgrid.multi_day_opacity = 1;
+
+				$timeout(function() {
+					document.getElementById("vpcalbar").classList.add("printcalbar");
+				});
 			},
 			templateUrl: "vpgrid.htm",
 			restrict: 'E'

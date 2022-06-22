@@ -1009,9 +1009,10 @@ angular.module("vpApp").directive("vpGrid", function(vpConfiguration, vpDiary, $
 		this.onclickPrint = function() {
 			var visinfo = getVisInfo();
 
-			$window.vpprint = {gridoptions: {}, gridview: {}, grid: {}};
+			$window.vpprint = {gridoptions: {}, gridview: {}, calendarlist: [], grid: {}};
 			angular.copy($scope.vp.gridoptions, $window.vpprint.gridoptions);
 			angular.copy($scope.vp.gridview, $window.vpprint.gridview);
+			angular.copy($scope.vp.calendarlist, $window.vpprint.calendarlist);
 			angular.copy($scope.vpgrid, $window.vpprint.grid);
 
 			$window.vpprint.grid.page = visinfo.months;
